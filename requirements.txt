@@ -1,0 +1,43 @@
+# Requirements for Real-Time Sign Language → Speech Translator
+# Optimized for Mac M4 with Apple Silicon
+
+# Base packages for data handling, video processing, and TTS
+opencv-python
+mediapipe
+numpy
+pandas
+pyttsx3
+scikit-learn==1.7.2
+matplotlib==3.10.7
+tqdm==4.67.1
+
+# ===== For Model Conversion =====
+coremltools==7.1
+onnx==1.15.0
+onnxruntime==1.16.3
+
+# UI and Demo
+streamlit==1.29.0
+Pillow==10.1.0
+
+# Testing
+pytest==7.4.3
+pytest-cov==4.1.0
+
+# Utilities
+PyYAML==6.0.1
+colorama==0.4.6
+python-dotenv==1.0.0
+
+# Optional: PyTorch for Transformer prototyping
+# torch==2.1.0
+# torchvision==0.16.0
+# torchaudio==2.1.0
+
+# Audio Processing (for TTS enhancement)
+sounddevice==0.4.6
+soundfile==0.12.1
+
+# For advanced models
+# Add any other specific versions if needed
+# Example: tensorflow==2.12.0

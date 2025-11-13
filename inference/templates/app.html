@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ISL Recognition - AI Powered Sign Language</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.1;
+        }
+
+        .bg-circle {
+            position: absolute;
+            border-radius: 50%;
+            background: white;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        .bg-circle:nth-child(1) { width: 200px; height: 200px; top: 10%; left: 10%; animation-delay: 0s; }
+        .bg-circle:nth-child(2) { width: 150px; height: 150px; top: 60%; left: 80%; animation-delay: 5s; }
+        .bg-circle:nth-child(3) { width: 100px; height: 100px; top: 80%; left: 20%; animation-delay: 10s; }
+        .bg-circle:nth-child(4) { width: 180px; height: 180px; top: 30%; left: 70%; animation-delay: 15s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-50px) scale(1.1); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            animation: slideDown 0.8s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .header h1 {
+            font-size: 3em;
+            font-weight: 700;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #fff, #f0f0f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        /* Main grid */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 20px;
+            animation: fadeIn 1s ease-out 0.3s backwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Glass card effect */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.5);
+        }
+
+        /* Video section */
+        .video-section {
+            position: relative;
+        }
+
+        .video-container {
+            position: relative;
+            border-radius: 15px;
+            overflow: hidden;
+            background: #000;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+
+        #videoFeed {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .video-overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            pointer-events: none;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0,0,0,0.7);
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 0.9em;
+            backdrop-filter: blur(10px);
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #4ade80;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        .speaking-indicator {
+            background: rgba(251, 146, 60, 0.9);
+            animation: glow 1s infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(251, 146, 60, 0.5); }
+            50% { box-shadow: 0 0 40px rgba(251, 146, 60, 0.8); }
+        }
+
+        /* Predictions */
+        .predictions-title {
+            font-size: 1.3em;
+            margin: 20px 0 15px 0;
+            font-weight: 600;
+        }
+
+        .prediction-item {
+            margin-bottom: 12px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .prediction-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .prediction-label {
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        .prediction-confidence {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .confidence-bar-container {
+            height: 8px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .confidence-bar {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .confidence-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .confidence-high { background: linear-gradient(90deg, #10b981, #34d399); }
+        .confidence-med { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+        .confidence-low { background: linear-gradient(90deg, #ef4444, #f87171); }
+
+        /* Side panel */
+        .side-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Controls */
+        .controls-section h3 {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-label {
+            display: block;
+            font-size: 0.95em;
+            margin-bottom: 8px;
+            opacity: 0.95;
+        }
+
+        /* Toggle switch */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255,255,255,0.3);
+            transition: 0.4s;
+            border-radius: 30px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .toggle-slider {
+            background: linear-gradient(135deg, #10b981, #34d399);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(30px);
+        }
+
+        /* Slider */
+        .slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.2);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .slider-value {
+            display: inline-block;
+            margin-left: 10px;
+            font-weight: 600;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #34d399);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f59e0b, #fbbf24);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #f87171);
+            color: white;
+        }
+
+        .btn-icon {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            border-radius: 50%;
+        }
+
+        /* Sentence builder */
+        .sentence-display {
+            min-height: 100px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            line-height: 1.6;
+            word-wrap: break-word;
+        }
+
+        .sentence-word {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 5px 12px;
+            margin: 4px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            animation: popIn 0.3s ease-out;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .sentence-word:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.05);
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        /* Tips section */
+        .tips-section {
+            background: rgba(59, 130, 246, 0.2);
+            border-left: 4px solid #3b82f6;
+        }
+
+        .tips-section h3 {
+            color: #93c5fd;
+            margin-bottom: 10px;
+        }
+
+        .tip-item {
+            margin-bottom: 8px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .tip-item::before {
+            content: '💡';
+            position: absolute;
+            left: 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+
+        /* Loading spinner */
+        .spinner {
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Icons (emoji based) */
+        .icon {
+            font-style: normal;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation">
+        <div class="bg-circle"></div>
+        <div class="bg-circle"></div>
+        <div class="bg-circle"></div>
+        <div class="bg-circle"></div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>🤟 ISL Recognition AI</h1>
+            <p class="subtitle">Real-time Indian Sign Language Recognition with AI-powered Speech</p>
+        </div>
+
+        <div class="main-grid">
+            <!-- Left: Video & Predictions -->
+            <div class="video-section">
+                <div class="glass-card">
+                    <div class="video-container">
+                        <img id="videoFeed" src="" alt="Video Feed">
+                        <div class="video-overlay">
+                            <div class="status-badge" id="statusBadge">
+                                <span class="status-dot"></span>
+                                <span id="statusText">Live Recognition</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 class="predictions-title">🎯 Top Predictions</h3>
+                    <div id="predictionsContainer">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Controls & Sentence -->
+            <div class="side-panel">
+                <!-- Sentence Builder -->
+                <div class="glass-card">
+                    <h3><span class="icon">✍️</span> Sentence Builder</h3>
+                    <div class="sentence-display" id="sentenceDisplay">
+                        <em style="opacity: 0.5;">Your sentence will appear here...</em>
+                    </div>
+                    <div class="button-group">
+                        <button class="btn btn-success" onclick="addTopPrediction()">
+                            <span class="icon">➕</span> Add Word
+                        </button>
+                        <button class="btn btn-warning" onclick="deleteLast()">
+                            <span class="icon">⬅️</span> Delete
+                        </button>
+                        <button class="btn btn-primary" onclick="speakSentence()">
+                            <span class="icon">🔊</span> Speak All
+                        </button>
+                        <button class="btn btn-danger" onclick="clearSentence()">
+                            <span class="icon">🗑️</span> Clear
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Speech Controls -->
+                <div class="glass-card controls-section">
+                    <h3><span class="icon">🎙️</span> Speech Controls</h3>
+                    
+                    <div class="control-group">
+                        <label class="control-label">
+                            <input type="checkbox" id="speechEnabled" checked onchange="updateSettings()">
+                            Enable Text-to-Speech
+                        </label>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">
+                            <input type="checkbox" id="autoSpeak" checked onchange="updateSettings()">
+                            Auto-speak predictions
+                        </label>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">
+                            Volume: <span class="slider-value" id="volumeValue">80%</span>
+                        </label>
+                        <input type="range" min="0" max="100" value="80" class="slider" id="volumeSlider" oninput="updateVolume()">
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">
+                            Confidence Threshold: <span class="slider-value" id="thresholdValue">75%</span>
+                        </label>
+                        <input type="range" min="50" max="95" value="75" class="slider" id="thresholdSlider" oninput="updateThreshold()">
+                    </div>
+                </div>
+
+                <!-- Tips -->
+                <div class="glass-card tips-section">
+                    <h3>📚 Quick Tips</h3>
+                    <div class="tip-item">Use well-lit environment for best results</div>
+                    <div class="tip-item">Keep your hand clearly visible to the camera</div>
+                    <div class="tip-item">For numbers, use the correct finger orientations</div>
+                    <div class="tip-item">Space bar to add prediction, Backspace to delete</div>
+                    <div class="tip-item">Press 'S' to speak sentence, 'C' to clear</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPredictions = [];
+        let currentSentence = [];
+
+        // Update video feed
+        function updateFrame() {
+            fetch('/get_frame')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.frame) {
+                        document.getElementById('videoFeed').src = 'data:image/jpeg;base64,' + data.frame;
+                        currentPredictions = data.predictions || [];
+                        currentSentence = data.sentence || [];
+                        
+                        updatePredictions();
+                        updateSentence();
+                        
+                        // Update status
+                        if (data.is_speaking) {
+                            document.getElementById('statusBadge').classList.add('speaking-indicator');
+                            document.getElementById('statusText').textContent = 'Speaking...';
+                        } else {
+                            document.getElementById('statusBadge').classList.remove('speaking-indicator');
+                            document.getElementById('statusText').textContent = 'Live Recognition';
+                        }
+                    }
+                })
+                .catch(error => console.error('Error:', error))
+                .finally(() => {
+                    setTimeout(updateFrame, 100); // 10 FPS
+                });
+        }
+
+        // Update predictions display
+        function updatePredictions() {
+            const container = document.getElementById('predictionsContainer');
+            
+            if (currentPredictions.length === 0) {
+                container.innerHTML = '<div class="spinner"></div>';
+                return;
+            }
+            
+            container.innerHTML = currentPredictions.map((pred, idx) => {
+                const confidence = (pred.confidence * 100).toFixed(1);
+                const barClass = confidence >= 75 ? 'confidence-high' : 
+                                confidence >= 50 ? 'confidence-med' : 'confidence-low';
+                
+                return `
+                    <div class="prediction-item" style="animation-delay: ${idx * 0.05}s">
+                        <div class="prediction-header">
+                            <span class="prediction-label">${idx === 0 ? '🏆 ' : ''}${pred.label}</span>
+                            <span class="prediction-confidence">${confidence}%</span>
+                        </div>
+                        <div class="confidence-bar-container">
+                            <div class="confidence-bar ${barClass}" style="width: ${confidence}%"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Update sentence display
+        function updateSentence() {
+            const display = document.getElementById('sentenceDisplay');
+            
+            if (currentSentence.length === 0) {
+                display.innerHTML = '<em style="opacity: 0.5;">Your sentence will appear here...</em>';
+            } else {
+                display.innerHTML = currentSentence.map(word => 
+                    `<span class="sentence-word" onclick="speakWord('${word}')">${word}</span>`
+                ).join('');
+            }
+        }
+
+        // Add top prediction to sentence
+        function addTopPrediction() {
+            if (currentPredictions.length > 0) {
+                const topLabel = currentPredictions[0].label;
+                fetch('/add_to_sentence', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ label: topLabel })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    currentSentence = data.sentence;
+                    updateSentence();
+                });
+            }
+        }
+
+        // Delete last word
+        function deleteLast() {
+            fetch('/delete_last', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    currentSentence = data.sentence;
+                    updateSentence();
+                });
+        }
+
+        // Clear sentence
+        function clearSentence() {
+            fetch('/clear_sentence', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    currentSentence = data.sentence;
+                    updateSentence();
+                });
+        }
+
+        // Speak sentence
+        function speakSentence() {
+            fetch('/speak_sentence', { method: 'POST' });
+        }
+
+        // Speak word
+        function speakWord(word) {
+            fetch('/speak_word', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ word: word })
+            });
+        }
+
+        // Update settings
+        function updateSettings() {
+            const settings = {
+                speech_enabled: document.getElementById('speechEnabled').checked,
+                auto_speak: document.getElementById('autoSpeak').checked,
+                volume: parseFloat(document.getElementById('volumeSlider').value) / 100,
+                speech_threshold: parseFloat(document.getElementById('thresholdSlider').value) / 100
+            };
+            
+            fetch('/update_settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(settings)
+            });
+        }
+
+        // Update volume
+        function updateVolume() {
+            const value = document.getElementById('volumeSlider').value;
+            document.getElementById('volumeValue').textContent = value + '%';
+            updateSettings();
+        }
+
+        // Update threshold
+        function updateThreshold() {
+            const value = document.getElementById('thresholdSlider').value;
+            document.getElementById('thresholdValue').textContent = value + '%';
+            updateSettings();
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT') return;
+            
+            switch(e.key) {
+                case ' ':
+                    e.preventDefault();
+                    addTopPrediction();
+                    break;
+                case 'Backspace':
+                    e.preventDefault();
+                    deleteLast();
+                    break;
+                case 's':
+                case 'S':
+                    e.preventDefault();
+                    speakSentence();
+                    break;
+                case 'c':
+                case 'C':
+                    e.preventDefault();
+                    clearSentence();
+                    break;
+            }
+        });
+
+        // Start updating
+        updateFrame();
+    </script>
+</body>
+</html>

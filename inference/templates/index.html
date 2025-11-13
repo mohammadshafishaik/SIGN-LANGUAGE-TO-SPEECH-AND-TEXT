@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ISL Recognition - Live Speech</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .video-container {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        #video {
+            width: 100%;
+            border-radius: 10px;
+            display: block;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+
+        .stat-item {
+            background: rgba(255,255,255,0.1);
+            padding: 8px 15px;
+            border-radius: 8px;
+        }
+
+        .predictions-panel {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .panel-title {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
+            padding-bottom: 10px;
+        }
+
+        .speaking-indicator {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: rgba(0,255,100,0.2);
+            border-radius: 8px;
+            border: 2px solid #00ff64;
+        }
+
+        .speaking-indicator.active {
+            display: flex;
+        }
+
+        .pulse {
+            width: 12px;
+            height: 12px;
+            background: #00ff64;
+            border-radius: 50%;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        .prediction-item {
+            margin-bottom: 12px;
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .prediction-item:hover {
+            background: rgba(255,255,255,0.1);
+            transform: translateX(5px);
+        }
+
+        .pred-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .pred-label {
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .pred-label.number {
+            color: #ff9500;
+        }
+
+        .pred-label.letter {
+            color: #00ff64;
+        }
+
+        .pred-confidence {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .confidence-bar {
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            transition: width 0.3s;
+            border-radius: 4px;
+        }
+
+        .confidence-fill.number {
+            background: linear-gradient(90deg, #ff9500, #ff6b00);
+        }
+
+        .confidence-fill.letter {
+            background: linear-gradient(90deg, #00ff64, #00cc51);
+        }
+
+        .sentence-panel {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .sentence-display {
+            background: rgba(0,0,0,0.4);
+            padding: 20px;
+            border-radius: 10px;
+            min-height: 80px;
+            font-size: 2rem;
+            font-weight: bold;
+            text-align: center;
+            word-wrap: break-word;
+            color: #00ffff;
+            text-shadow: 0 0 10px rgba(0,255,255,0.5);
+            margin-bottom: 15px;
+            letter-spacing: 3px;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-add {
+            background: linear-gradient(135deg, #00ff64, #00cc51);
+            color: #000;
+        }
+
+        .btn-delete {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            color: white;
+        }
+
+        .btn-clear {
+            background: linear-gradient(135deg, #ffd93d, #ffb93d);
+            color: #000;
+        }
+
+        .btn-speak {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .instructions {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            font-size: 0.9rem;
+        }
+
+        .instructions h3 {
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .instructions ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .instructions li {
+            padding: 5px 0;
+        }
+
+        .instructions li::before {
+            content: "→ ";
+            color: #00ff64;
+        }
+
+        @media (max-width: 968px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .sentence-display {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤟 ISL Recognition + Speech 🔊</h1>
+            <p class="subtitle">Real-Time Indian Sign Language Recognition with Text-to-Speech</p>
+        </header>
+
+        <div class="main-grid">
+            <div class="video-container">
+                <img id="video" src="{{ url_for('video_feed') }}" alt="Live Video Feed">
+                <div class="stats">
+                    <div class="stat-item">
+                        <strong>FPS:</strong> <span id="fps">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <strong>Confidence:</strong> <span id="confidence">0%</span>
+                    </div>
+                    <div class="stat-item">
+                        <strong>Status:</strong> <span id="status">Active</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="predictions-panel">
+                <h2 class="panel-title">📊 Predictions</h2>
+                
+                <div id="speaking" class="speaking-indicator">
+                    <div class="pulse"></div>
+                    <div>🔊 Speaking: <span id="speaking-text"></span></div>
+                </div>
+
+                <div id="predictions">
+                    <!-- Predictions will be inserted here -->
+                </div>
+            </div>
+        </div>
+
+        <div class="sentence-panel">
+            <h2 class="panel-title">📝 Sentence Builder</h2>
+            <div id="sentence" class="sentence-display">
+                <!-- Sentence will appear here -->
+            </div>
+            
+            <div class="controls">
+                <button class="btn btn-add" onclick="addToSentence()">
+                    ➕ Add Current
+                </button>
+                <button class="btn btn-delete" onclick="deleteLast()">
+                    ⌫ Delete Last
+                </button>
+                <button class="btn btn-clear" onclick="clearSentence()">
+                    🗑️ Clear All
+                </button>
+                <button class="btn btn-speak" onclick="speakSentence()">
+                    🔊 Speak Sentence
+                </button>
+            </div>
+
+            <div class="instructions">
+                <h3>⌨️ Keyboard Shortcuts:</h3>
+                <ul>
+                    <li><strong>SPACE</strong> - Add current prediction to sentence</li>
+                    <li><strong>BACKSPACE</strong> - Delete last character</li>
+                    <li><strong>C</strong> - Clear entire sentence</li>
+                    <li><strong>S</strong> - Speak sentence</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Update state every 200ms
+        setInterval(updateState, 200);
+
+        function updateState() {
+            fetch('/get_state')
+                .then(response => response.json())
+                .then(data => {
+                    // Update FPS
+                    document.getElementById('fps').textContent = data.fps.toFixed(1);
+
+                    // Update confidence
+                    const conf = (data.confidence * 100).toFixed(1);
+                    document.getElementById('confidence').textContent = conf + '%';
+
+                    // Update predictions
+                    updatePredictions(data.predictions);
+
+                    // Update sentence
+                    const sentenceDiv = document.getElementById('sentence');
+                    sentenceDiv.textContent = data.sentence || 'Start signing...';
+
+                    // Update speaking indicator
+                    const speakingDiv = document.getElementById('speaking');
+                    const speakingText = document.getElementById('speaking-text');
+                    if (data.speaking) {
+                        speakingDiv.classList.add('active');
+                        speakingText.textContent = data.last_spoken;
+                    } else {
+                        speakingDiv.classList.remove('active');
+                    }
+                });
+        }
+
+        function updatePredictions(predictions) {
+            const container = document.getElementById('predictions');
+            
+            if (!predictions || predictions.length === 0) {
+                container.innerHTML = '<p style="opacity: 0.5;">No hand detected</p>';
+                return;
+            }
+
+            container.innerHTML = '';
+
+            predictions.forEach((pred, index) => {
+                const item = document.createElement('div');
+                item.className = 'prediction-item';
+
+                const header = document.createElement('div');
+                header.className = 'pred-header';
+
+                const label = document.createElement('div');
+                label.className = `pred-label ${pred.type}`;
+                label.textContent = `${index + 1}. ${pred.type === 'number' ? '[NUM]' : '[LTR]'} ${pred.label}`;
+
+                const confidence = document.createElement('div');
+                confidence.className = 'pred-confidence';
+                confidence.textContent = (pred.confidence * 100).toFixed(1) + '%';
+
+                header.appendChild(label);
+                header.appendChild(confidence);
+
+                const bar = document.createElement('div');
+                bar.className = 'confidence-bar';
+
+                const fill = document.createElement('div');
+                fill.className = `confidence-fill ${pred.type}`;
+                fill.style.width = (pred.confidence * 100) + '%';
+
+                bar.appendChild(fill);
+                item.appendChild(header);
+                item.appendChild(bar);
+                container.appendChild(item);
+            });
+        }
+
+        function addToSentence() {
+            fetch('/add_to_sentence')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log('Added to sentence:', data.sentence);
+                    }
+                });
+        }
+
+        function deleteLast() {
+            fetch('/delete_last')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Deleted last character');
+                });
+        }
+
+        function clearSentence() {
+            fetch('/clear_sentence')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Cleared sentence');
+                });
+        }
+
+        function speakSentence() {
+            fetch('/speak_sentence')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Speaking sentence');
+                });
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === ' ') {
+                e.preventDefault();
+                addToSentence();
+            } else if (e.key === 'Backspace') {
+                e.preventDefault();
+                deleteLast();
+            } else if (e.key.toLowerCase() === 'c') {
+                e.preventDefault();
+                clearSentence();
+            } else if (e.key.toLowerCase() === 's') {
+                e.preventDefault();
+                speakSentence();
+            }
+        });
+    </script>
+</body>
+</html>

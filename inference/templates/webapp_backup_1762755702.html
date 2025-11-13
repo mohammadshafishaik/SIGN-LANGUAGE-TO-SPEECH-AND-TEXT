@@ -1,0 +1,1433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SignSpeak AI - Advanced Sign Language Recognition</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #0a0e27;
+            color: white;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Animated gradient background */
+        .bg-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            background: linear-gradient(45deg, #0a0e27, #1a1f3a, #2a1f3a, #1a2f4a);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        /* Floating particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: rgba(139, 92, 246, 0.5);
+            border-radius: 50%;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { 
+                transform: translateY(0) translateX(0) scale(1);
+                opacity: 0;
+            }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            50% { 
+                transform: translateY(-100vh) translateX(50px) scale(1.5);
+            }
+        }
+
+        /* Generate particles */
+        .particle:nth-child(1) { left: 10%; animation-delay: 0s; }
+        .particle:nth-child(2) { left: 20%; animation-delay: 2s; }
+        .particle:nth-child(3) { left: 30%; animation-delay: 4s; }
+        .particle:nth-child(4) { left: 40%; animation-delay: 6s; }
+        .particle:nth-child(5) { left: 50%; animation-delay: 8s; }
+        .particle:nth-child(6) { left: 60%; animation-delay: 10s; }
+        .particle:nth-child(7) { left: 70%; animation-delay: 12s; }
+        .particle:nth-child(8) { left: 80%; animation-delay: 14s; }
+        .particle:nth-child(9) { left: 90%; animation-delay: 16s; }
+
+        .container {
+            position: relative;
+            z-index: 2;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Glassmorphism header */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            animation: slideDown 0.8s ease-out;
+            position: relative;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .header h1 {
+            font-size: 3em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            animation: glow 3s ease-in-out infinite;
+            transition: all 0.3s ease;
+        }
+        
+        /* Light theme styles */
+        body.light-theme .header h1 {
+            color: #1e3a8a;
+            background: none;
+            -webkit-text-fill-color: #1e3a8a;
+            text-shadow: 2px 2px 4px rgba(30, 58, 138, 0.2);
+        }
+        
+        body.light-theme .header .subtitle {
+            color: #334155;
+            opacity: 1;
+            font-weight: 500;
+        }
+        
+        body.light-theme .card {
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid rgba(139, 92, 246, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        body.light-theme .card h2 {
+            color: #6366f1;
+            background: none;
+            -webkit-text-fill-color: #6366f1;
+        }
+        
+        body.light-theme .prediction-item {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+        
+        body.light-theme .prediction-label {
+            color: #1e40af !important;
+            font-weight: 600;
+        }
+        
+        body.light-theme .confidence {
+            color: #6366f1 !important;
+        }
+        
+        body.light-theme .video-container,
+        body.light-theme .stats-overlay,
+        body.light-theme .performance-stats {
+            color: #1e293b !important;
+        }
+        
+        body.light-theme .stats-label {
+            color: #475569 !important;
+        }
+        
+        body.light-theme .sentence-display {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%);
+            border: 2px solid rgba(99, 102, 241, 0.3);
+            color: #1e293b;
+        }
+        
+        body.light-theme .word-chip {
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            color: white;
+        }
+        
+        body.light-theme button {
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            color: white;
+            border: none;
+        }
+        
+        body.light-theme button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+        }
+        
+        body.light-theme .stats-item {
+            background: rgba(99, 102, 241, 0.1);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+        
+        body.light-theme .stats-value {
+            color: #6366f1 !important;
+            background: none;
+            -webkit-text-fill-color: #6366f1;
+        }
+        
+        body.light-theme .history-chip {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(168, 85, 247, 0.2) 100%);
+            border-color: rgba(99, 102, 241, 0.3);
+            color: #1e40af;
+        }
+
+        @keyframes glow {
+            0%, 100% { filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.5)); }
+            50% { filter: drop-shadow(0 0 40px rgba(139, 92, 246, 0.8)); }
+        }
+
+        .header .subtitle {
+            font-size: 1.1em;
+            opacity: 0.8;
+            font-weight: 300;
+            transition: all 0.3s ease;
+        }
+        
+        /* Theme toggle button - top right */
+        /* Theme Toggle Switch */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+        }
+        
+        .toggle-switch {
+            position: relative;
+            width: 70px;
+            height: 34px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4), inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .toggle-switch:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 30px rgba(102, 126, 234, 0.6), inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            top: 3px;
+            left: 4px;
+            width: 26px;
+            height: 26px;
+            background: linear-gradient(145deg, #ffffff, #e0e0e0);
+            border-radius: 50%;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        
+        body.light-theme .toggle-switch {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            box-shadow: 0 4px 20px rgba(251, 191, 36, 0.4), inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        body.light-theme .toggle-slider {
+            transform: translateX(34px);
+            background: linear-gradient(145deg, #fef3c7, #fde68a);
+        }
+        
+        body.light-theme .toggle-switch:hover {
+            box-shadow: 0 6px 30px rgba(251, 191, 36, 0.6), inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 25px;
+        }
+
+        /* Neon card effect */
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 
+                0 8px 32px 0 rgba(31, 38, 135, 0.37),
+                inset 0 0 20px rgba(139, 92, 246, 0.1);
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: 0.5s;
+        }
+
+        .card:hover::before {
+            left: 100%;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 
+                0 15px 50px 0 rgba(139, 92, 246, 0.5),
+                inset 0 0 30px rgba(139, 92, 246, 0.2);
+            border-color: rgba(139, 92, 246, 0.5);
+        }
+
+        /* Video container with neon border */
+        .video-container {
+            position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(139, 92, 246, 0.3);
+        }
+
+        .video-container::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #667eea, #764ba2, #f093fb, #667eea);
+            background-size: 400%;
+            border-radius: 20px;
+            z-index: -1;
+            animation: borderGlow 3s linear infinite;
+        }
+
+        @keyframes borderGlow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        @keyframes slideIn {
+            from { 
+                opacity: 0; 
+                transform: translateX(-20px) scale(0.8);
+            }
+            to { 
+                opacity: 1; 
+                transform: translateX(0) scale(1);
+            }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        #videoFeed {
+            width: 100%;
+            display: block;
+            border-radius: 18px;
+        }
+
+        /* Animated predictions */
+        .predictions {
+            margin-top: 25px;
+        }
+
+        .predictions h3 {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .pred-item {
+            margin-bottom: 15px;
+            transition: all 0.3s;
+        }
+
+        @keyframes slideInLeft {
+            from { 
+                transform: translateX(-30px);
+                opacity: 0;
+            }
+            to { 
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .pred-item:hover {
+            transform: scale(1.02);
+        }
+
+        .pred-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .pred-label {
+            font-weight: 600;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pred-label .icon {
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .pred-confidence {
+            font-size: 0.95em;
+            padding: 4px 12px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            font-weight: 600;
+        }
+
+        /* Neon progress bars */
+        .conf-bar-bg {
+            height: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .conf-bar {
+            height: 100%;
+            border-radius: 10px;
+            position: relative;
+            transition: width 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+            overflow: hidden;
+        }
+
+        .conf-bar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .conf-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            box-shadow: 0 0 20px currentColor;
+        }
+
+        .conf-high { 
+            background: linear-gradient(90deg, #10b981, #34d399);
+            color: #10b981;
+        }
+        .conf-med { 
+            background: linear-gradient(90deg, #f59e0b, #fbbf24);
+            color: #f59e0b;
+        }
+        .conf-low { 
+            background: linear-gradient(90deg, #ef4444, #f87171);
+            color: #ef4444;
+        }
+
+        /* Glowing sentence display */
+        .sentence {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 15px;
+            padding: 20px;
+            min-height: 100px;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+            border: 2px solid rgba(139, 92, 246, 0.3);
+            box-shadow: 
+                0 0 20px rgba(139, 92, 246, 0.2),
+                inset 0 0 20px rgba(139, 92, 246, 0.1);
+            transition: all 0.3s;
+        }
+
+        .sentence:hover {
+            border-color: rgba(139, 92, 246, 0.6);
+            box-shadow: 
+                0 0 30px rgba(139, 92, 246, 0.4),
+                inset 0 0 30px rgba(139, 92, 246, 0.2);
+        }
+
+        /* Animated word chips */
+        .word-chip {
+            display: inline-block;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(124, 58, 237, 0.3));
+            padding: 8px 16px;
+            margin: 5px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+            border: 1px solid rgba(139, 92, 246, 0.5);
+            animation: popIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0) rotate(180deg); opacity: 0; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        .word-chip::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .word-chip:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .word-chip:hover {
+            transform: scale(1.1) translateY(-3px);
+            box-shadow: 
+                0 10px 25px rgba(139, 92, 246, 0.5),
+                0 0 20px rgba(139, 92, 246, 0.3);
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.5), rgba(124, 58, 237, 0.5));
+        }
+
+        .word-chip:active {
+            transform: scale(0.95);
+        }
+
+        /* Futuristic buttons */
+        .btn {
+            padding: 12px 28px;
+            border: none;
+            border-radius: 30px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            position: relative;
+            overflow: hidden;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:hover::before {
+            width: 400px;
+            height: 400px;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(-1px) scale(0.98);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #34d399);
+            color: white;
+            box-shadow: 0 5px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-success:hover {
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.6);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f59e0b, #fbbf24);
+            color: white;
+            box-shadow: 0 5px 20px rgba(245, 158, 11, 0.4);
+        }
+
+        .btn-warning:hover {
+            box-shadow: 0 10px 30px rgba(245, 158, 11, 0.6);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #f87171);
+            color: white;
+            box-shadow: 0 5px 20px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-danger:hover {
+            box-shadow: 0 10px 30px rgba(239, 68, 68, 0.6);
+        }
+
+        /* Toggle switches */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.1);
+            transition: 0.4s;
+            border-radius: 30px;
+            border: 2px solid rgba(139, 92, 246, 0.3);
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 2px;
+            bottom: 2px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            transition: 0.4s;
+            border-radius: 50%;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        input:checked + .slider {
+            background: rgba(16, 185, 129, 0.3);
+            border-color: #10b981;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(30px);
+            background: linear-gradient(135deg, #10b981, #34d399);
+        }
+
+        /* Range sliders */
+        .range-container {
+            margin: 15px 0;
+        }
+
+        .range-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            cursor: pointer;
+            box-shadow: 
+                0 0 10px rgba(102, 126, 234, 0.5),
+                0 3px 10px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 
+                0 0 20px rgba(102, 126, 234, 0.8),
+                0 5px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            cursor: pointer;
+            border: none;
+            box-shadow: 
+                0 0 10px rgba(102, 126, 234, 0.5),
+                0 3px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Tips section */
+        .tips {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(37, 99, 235, 0.2));
+            border-left: 4px solid #3b82f6;
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+
+        .tips h3 {
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .tip-item {
+            padding: 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            opacity: 0;
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        .tip-item:nth-child(1) { animation-delay: 0.2s; }
+        .tip-item:nth-child(2) { animation-delay: 0.4s; }
+        .tip-item:nth-child(3) { animation-delay: 0.6s; }
+        .tip-item:nth-child(4) { animation-delay: 0.8s; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .tip-item::before {
+            content: '✨';
+            font-size: 1.2em;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+
+        /* Loading animation */
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(139, 92, 246, 0.3);
+            border-top-color: #8b5cf6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Speaking indicator */
+        .speaking-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #f59e0b, #fbbf24);
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 0.9em;
+            font-weight: 600;
+            display: none;
+            animation: pulse 1.5s ease-in-out infinite;
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.6);
+        }
+
+        .speaking-badge.active {
+            display: block;
+        }
+
+        @keyframes pulse {
+            0%, 100% { 
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% { 
+                transform: scale(1.05);
+                opacity: 0.9;
+            }
+        }
+
+        /* Control groups */
+        .control-group {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s;
+        }
+
+        .control-group:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(139, 92, 246, 0.3);
+        }
+
+        /* Theme Toggle Switch - Top Right */
+        .theme-toggle-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .theme-toggle {
+            position: relative;
+            width: 70px;
+            height: 34px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            padding: 0 4px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .theme-toggle:hover {
+            border-color: rgba(139, 92, 246, 0.6);
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+            transform: scale(1.05);
+        }
+        
+        .theme-toggle-slider {
+            position: absolute;
+            width: 26px;
+            height: 26px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            left: 4px;
+        }
+        
+        .theme-toggle.light {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .theme-toggle.light .theme-toggle-slider {
+            left: 36px;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+        }
+
+        .control-label {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        /* Section headers */
+        .section-header {
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(139, 92, 246, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated background -->
+    <div class="bg-gradient"></div>
+    
+    <!-- Floating particles -->
+    <div class="particles">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+
+    <!-- Theme Toggle - Fixed Top Right -->
+    <div class="theme-toggle">
+        <div class="toggle-switch" onclick="toggleTheme()" title="Toggle Theme">
+            <div class="toggle-slider" id="toggleSlider">
+                <span id="themeIcon">🌙</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>🤟 SignSpeak AI</h1>
+            <p class="subtitle">Next-Gen Real-time Sign Language Recognition</p>
+        </div>
+
+        <div class="main-grid">
+            <!-- Video & Predictions -->
+            <div>
+                <div class="card">
+                    <div class="video-container">
+                        <img id="videoFeed" src="" alt="Loading camera...">
+                        <div class="speaking-badge" id="speakingBadge">
+                            🔊 Speaking...
+                        </div>
+                        <!-- Performance Stats Overlay -->
+                        <div style="position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.7); padding: 6px 10px; border-radius: 8px; font-size: 11px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1);">
+                            <div style="display: flex; gap: 12px; align-items: center;">
+                                <span id="fpsCounter" style="color: #0ff;">📊 --</span>
+                                <span id="accuracyDisplay" style="color: #0f0;">🎯 --%</span>
+                                <span id="gestureCount" style="color: #f0f;">✋ 0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="predictions">
+                        <h3 class="section-header">
+                            <span>🎯</span>
+                            <span>Top Predictions</span>
+                        </h3>
+                        <div id="predList">
+                            <div class="loading"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Gesture History Timeline -->
+                <div class="card" style="margin-top: 15px;">
+                    <h3 class="section-header">
+                        <span>📈</span>
+                        <span>Recent Gestures</span>
+                    </h3>
+                    <div id="gestureHistory" style="display: flex; gap: 6px; flex-wrap: wrap; min-height: 35px; align-items: center; justify-content: flex-start;">
+                        <em style="opacity: 0.5; font-size: 13px;">No gestures yet...</em>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div>
+                <!-- Sentence Builder -->
+                <div class="card">
+                    <h3 class="section-header">
+                        <span>✍️</span>
+                        <span>Sentence Builder</span>
+                    </h3>
+                    
+                    <div class="sentence" id="sentence">
+                        <em style="opacity: 0.5;">Your sentence will appear here...</em>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <button class="btn btn-success" onclick="addWord()">
+                            ➕ Add Word
+                        </button>
+                        <button class="btn btn-warning" onclick="deleteLast()">
+                            ⬅️ Delete
+                        </button>
+                        <button class="btn btn-primary" onclick="speakSentence()">
+                            🔊 Speak All
+                        </button>
+                        <button class="btn btn-danger" onclick="clearSentence()">
+                            🗑️ Clear
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Speech Controls -->
+                <div class="card">
+                    <h3 class="section-header">
+                        <span>🎙️</span>
+                        <span>Speech Controls</span>
+                    </h3>
+                    
+                    <div class="control-group">
+                        <label class="control-label">
+                            <span style="flex: 1;">Enable Text-to-Speech</span>
+                            <label class="switch">
+                                <input type="checkbox" id="speechEnabled" checked onchange="updateSettings()">
+                                <span class="slider"></span>
+                            </label>
+                        </label>
+                    </div>
+
+                    <div class="control-group">
+                        <label class="control-label">
+                            <span style="flex: 1;">Auto-speak when adding</span>
+                            <label class="switch">
+                                <input type="checkbox" id="autoSpeak" onchange="updateSettings()">
+                                <span class="slider"></span>
+                            </label>
+                        </label>
+                    </div>
+
+                    <div class="range-container">
+                        <div class="range-label">
+                            <span>🔊 Volume</span>
+                            <span id="volValue">80%</span>
+                        </div>
+                        <input type="range" min="0" max="100" value="80" id="volumeSlider" oninput="updateVolume()">
+                    </div>
+                </div>
+
+                <!-- Tips -->
+                <div class="card tips">
+                    <h3>📚 Pro Tips</h3>
+                    <div class="tip-item">Use well-lit environment for best results</div>
+                    <div class="tip-item">Keep hand clearly visible to camera</div>
+                    <div class="tip-item">Space = Add, Backspace = Delete</div>
+                    <div class="tip-item">S = Speak, C = Clear sentence</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSentence = [];
+        let lastPredictionsData = [];
+        let lastSentenceStr = '';
+        let isSpeaking = false;
+        let frameCount = 0;
+        
+        // NEW: Performance tracking
+        let fpsHistory = [];
+        let lastFrameTime = Date.now();
+        let gestureHistory = [];
+        let totalGestures = 0;
+        let isDarkTheme = true;
+
+        function updateFrame() {
+            fetch('/get_frame')
+                .then(r => r.json())
+                .then(data => {
+                    // Always update video for smooth camera
+                    document.getElementById('videoFeed').src = 'data:image/jpeg;base64,' + data.frame;
+                    
+                    frameCount++;
+                    
+                    // Calculate FPS
+                    const now = Date.now();
+                    const fps = 1000 / (now - lastFrameTime);
+                    lastFrameTime = now;
+                    fpsHistory.push(fps);
+                    if (fpsHistory.length > 10) fpsHistory.shift();
+                    const avgFps = fpsHistory.reduce((a, b) => a + b, 0) / fpsHistory.length;
+                    document.getElementById('fpsCounter').textContent = `📊 ${avgFps.toFixed(1)}`;
+                    
+                    // Update predictions every 3 frames (300ms) instead of every frame
+                    if (frameCount % 3 === 0) {
+                        // Check if predictions actually changed
+                        const predsChanged = data.predictions.some((p, i) => {
+                            if (!lastPredictionsData[i]) return true;
+                            return p.label !== lastPredictionsData[i].label || 
+                                   Math.abs(p.confidence - lastPredictionsData[i].confidence) > 0.02;
+                        });
+                        
+                        if (predsChanged || data.predictions.length !== lastPredictionsData.length) {
+                            updatePredictions(data.predictions);
+                            lastPredictionsData = data.predictions.map(p => ({...p}));
+                            
+                            // Update accuracy display
+                            if (data.predictions[0]) {
+                                const topConf = (data.predictions[0].confidence * 100).toFixed(0);
+                                document.getElementById('accuracyDisplay').textContent = `🎯 ${topConf}%`;
+                                
+                                // Add to gesture history if high confidence
+                                if (data.predictions[0].confidence > 0.70) {
+                                    addToGestureHistory(data.predictions[0].label, data.predictions[0].confidence);
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Check sentence changes every frame (but only update DOM if changed)
+                    const newSentenceStr = JSON.stringify(data.sentence);
+                    if (newSentenceStr !== lastSentenceStr) {
+                        currentSentence = data.sentence;
+                        updateSentenceDisplay();
+                        lastSentenceStr = newSentenceStr;
+                    }
+                })
+                .catch(e => console.error(e))
+                .finally(() => setTimeout(updateFrame, 100));
+        }
+
+        function updatePredictions(predictions) {
+            const predList = document.getElementById('predList');
+            
+            // Create/update exactly 5 prediction items (stable DOM)
+            for (let i = 0; i < 5; i++) {
+                let predItem = predList.children[i];
+                
+                // Create item if it doesn't exist
+                if (!predItem) {
+                    predItem = document.createElement('div');
+                    predItem.className = 'pred-item';
+                    predItem.innerHTML = `
+                        <div class="pred-header">
+                            <span class="pred-label">
+                                <span class="icon"></span>
+                                <span class="label-text"></span>
+                            </span>
+                            <span class="pred-confidence"></span>
+                        </div>
+                        <div class="conf-bar-bg">
+                            <div class="conf-bar"></div>
+                        </div>
+                    `;
+                    predList.appendChild(predItem);
+                }
+                
+                const p = predictions[i];
+                if (p) {
+                    const conf = (p.confidence * 100).toFixed(1);
+                    const barClass = conf >= 75 ? 'conf-high' : conf >= 50 ? 'conf-med' : 'conf-low';
+                    const icon = i === 0 ? '🏆' : i === 1 ? '🥈' : i === 2 ? '🥉' : '•';
+                    
+                    // Update only text content, not structure
+                    const iconEl = predItem.querySelector('.icon');
+                    const labelEl = predItem.querySelector('.label-text');
+                    const confEl = predItem.querySelector('.pred-confidence');
+                    const barEl = predItem.querySelector('.conf-bar');
+                    
+                    if (iconEl.textContent !== icon) iconEl.textContent = icon;
+                    if (labelEl.textContent !== p.label) labelEl.textContent = p.label;
+                    if (confEl.textContent !== conf + '%') confEl.textContent = conf + '%';
+                    
+                    // Update bar class and width smoothly
+                    barEl.className = 'conf-bar ' + barClass;
+                    barEl.style.width = conf + '%';
+                }
+            }
+        }
+
+        function updateSentenceDisplay() {
+            const sent = document.getElementById('sentence');
+            
+            if (currentSentence.length === 0) {
+                if (!sent.querySelector('em')) {
+                    sent.innerHTML = '<em style="opacity: 0.5;">Your sentence will appear here...</em>';
+                }
+            } else {
+                // Only rebuild if word count changed
+                const currentChips = sent.querySelectorAll('.word-chip');
+                
+                if (currentChips.length !== currentSentence.length) {
+                    // Full rebuild needed
+                    sent.innerHTML = currentSentence.map(w => 
+                        `<span class="word-chip" onclick="speakWord('${w}')">${w}</span>`
+                    ).join('');
+                } else {
+                    // Just update text content of existing chips
+                    currentChips.forEach((chip, i) => {
+                        if (chip.textContent !== currentSentence[i]) {
+                            chip.textContent = currentSentence[i];
+                        }
+                    });
+                }
+            }
+        }
+
+        function addWord() {
+            fetch('/add_word', {method: 'POST'})
+                .then(r => r.json())
+                .then(data => {
+                    currentSentence = data.sentence;
+                    updateSentenceDisplay();
+                });
+        }
+
+        function deleteLast() {
+            fetch('/delete_last', {method: 'POST'})
+                .then(r => r.json())
+                .then(data => {
+                    currentSentence = data.sentence;
+                    updateSentenceDisplay();
+                });
+        }
+
+        function clearSentence() {
+            fetch('/clear_sentence', {method: 'POST'})
+                .then(r => r.json())
+                .then(data => {
+                    currentSentence = data.sentence;
+                    updateSentenceDisplay();
+                });
+        }
+
+        function speakSentence() {
+            showSpeakingIndicator();
+            fetch('/speak_sentence', {method: 'POST'});
+        }
+
+        function speakWord(word) {
+            showSpeakingIndicator();
+            fetch('/speak_word', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({word: word})
+            });
+        }
+
+        function showSpeakingIndicator() {
+            const badge = document.getElementById('speakingBadge');
+            badge.classList.add('active');
+            setTimeout(() => {
+                badge.classList.remove('active');
+            }, 2000);
+        }
+
+        function updateSettings() {
+            fetch('/update_settings', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    speech_enabled: document.getElementById('speechEnabled').checked,
+                    auto_speak: document.getElementById('autoSpeak').checked,
+                    volume: parseFloat(document.getElementById('volumeSlider').value) / 100
+                })
+            });
+        }
+
+        function updateVolume() {
+            const val = document.getElementById('volumeSlider').value;
+            document.getElementById('volValue').textContent = val + '%';
+            updateSettings();
+        }
+        
+        // NEW: Add gesture to history timeline
+        function addToGestureHistory(label, confidence) {
+            const now = Date.now();
+            // Debounce - don't add same gesture within 2 seconds
+            if (gestureHistory.length > 0) {
+                const last = gestureHistory[gestureHistory.length - 1];
+                if (last.label === label && (now - last.timestamp) < 2000) {
+                    return;
+                }
+            }
+            
+            totalGestures++;
+            gestureHistory.push({label, confidence, timestamp: now});
+            if (gestureHistory.length > 10) gestureHistory.shift();
+            
+            // Update display
+            const historyDiv = document.getElementById('gestureHistory');
+            historyDiv.innerHTML = gestureHistory.map((g, i) => {
+                const conf = (g.confidence * 100).toFixed(0);
+                const age = Math.floor((now - g.timestamp) / 1000);
+                const opacity = Math.max(0.3, 1 - (age / 30));
+                return `<span style="
+                    background: linear-gradient(135deg, rgba(139, 69, 255, ${opacity}), rgba(255, 20, 147, ${opacity}));
+                    padding: 6px 12px;
+                    border-radius: 20px;
+                    font-size: 14px;
+                    font-weight: 600;
+                    border: 1px solid rgba(255,255,255,0.2);
+                    animation: slideIn 0.3s ease;
+                ">${g.label} <span style="opacity: 0.7; font-size: 12px;">${conf}%</span></span>`;
+            }).join('');
+            
+            document.getElementById('gestureCount').textContent = `✋ ${totalGestures}`;
+        }
+        
+        // Theme toggle function with animated switch
+        function toggleTheme() {
+            isDarkTheme = !isDarkTheme;
+            const icon = document.getElementById('themeIcon');
+            const bgGradient = document.querySelector('.bg-gradient');
+            
+            if (isDarkTheme) {
+                // Dark theme
+                document.body.classList.remove('light-theme');
+                bgGradient.style.background = 'linear-gradient(45deg, #0a0e27, #1a1f3a, #2a1f3a, #1a2f4a)';
+                icon.textContent = '🌙';
+            } else {
+                // Light theme
+                document.body.classList.add('light-theme');
+                bgGradient.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)';
+                icon.textContent = '☀️';
+            }
+            
+            // Smooth transition
+            bgGradient.style.transition = 'background 0.8s ease';
+            playClickSound();
+        }
+        
+        // Sound effects (using Web Audio API)
+        function playClickSound() {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.value = 800;
+                oscillator.type = 'sine';
+                
+                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.1);
+            } catch(e) {
+                console.log('Audio not supported');
+            }
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', e => {
+            if (e.target.tagName === 'INPUT') return;
+            
+            if (e.key === ' ') { 
+                e.preventDefault(); 
+                addWord(); 
+            }
+            else if (e.key === 'Backspace') { 
+                e.preventDefault(); 
+                deleteLast(); 
+            }
+            else if (e.key === 's' || e.key === 'S') { 
+                e.preventDefault(); 
+                speakSentence(); 
+            }
+            else if (e.key === 'c' || e.key === 'C') { 
+                e.preventDefault(); 
+                clearSentence(); 
+            }
+        });
+
+        // Initialize prediction list on page load
+        function initPredictionList() {
+            const predList = document.getElementById('predList');
+            predList.innerHTML = ''; // Clear loading indicator
+            
+            // Create 5 empty prediction items
+            for (let i = 0; i < 5; i++) {
+                const predItem = document.createElement('div');
+                predItem.className = 'pred-item';
+                predItem.innerHTML = `
+                    <div class="pred-header">
+                        <span class="pred-label">
+                            <span class="icon">•</span>
+                            <span class="label-text">Loading...</span>
+                        </span>
+                        <span class="pred-confidence">0%</span>
+                    </div>
+                    <div class="conf-bar-bg">
+                        <div class="conf-bar conf-low" style="width: 0%"></div>
+                    </div>
+                `;
+                predList.appendChild(predItem);
+            }
+        }
+
+        // Start
+        initPredictionList();
+        updateFrame();
+    </script>
+</body>
+</html>
