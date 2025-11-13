@@ -228,8 +228,8 @@ MIT License - see LICENSE file for details.
 
 ## 📞 Support
 
-- 📧 Email: your.email@example.com
-- 🐛 Issues: [GitHub Issues](https://github.com/YOUR_USERNAME/isl-recognition/issues)
+- 📧 Email: sk.mohammadshafi3044@gmail.com
+- 🐛 Issues: [GitHub Issues](https://github.com/mohammadshafishaik/SIGN-LANGUAGE-TO-SPEECH-AND-TEXT)
 - 📖 Docs: See `COMPLETE_GUIDE.md`
 
 ## 🎯 Roadmap
