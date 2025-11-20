@@ -181,7 +181,7 @@ def load_model():
 
 @app.route('/')
 def index():
-    return render_template('webapp.html')
+    return render_template('premium.html')
 
 @app.route('/get_frame')
 def get_frame():
