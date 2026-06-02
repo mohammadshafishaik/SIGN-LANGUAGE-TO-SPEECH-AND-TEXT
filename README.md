@@ -1,5 +1,6 @@
-# 🤟 ISL Recognition - Sign Language to Speech
+# ISL Recognition - Sign Language to Speech
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/mohammadshafishaik/SIGN-LANGUAGE-TO-SPEECH-AND-TEXT)
 Real-time Indian Sign Language (ISL) recognition system with speech output using deep learning and MediaPipe.
 
 ![Python](https://img.shields.io/badge/python-3.11+-blue.svg)
