@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SignSpeak AI — Real-Time Sign Language Recognition</title>
+    <meta name="description" content="Real-time Indian Sign Language recognition with AI-powered speech output">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        :root{
+            --p:#7c3aed;--p2:#a78bfa;--p3:#4f46e5;
+            --acc:#f472b6;--ok:#34d399;--warn:#fbbf24;--err:#f87171;
+            --bg:#09090b;--bg2:rgba(255,255,255,.04);--bg3:rgba(255,255,255,.08);
+            --t1:#fafafa;--t2:rgba(255,255,255,.6);--t3:rgba(255,255,255,.35);
+            --bdr:rgba(255,255,255,.08);--r:16px;
+        }
+        body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--t1);overflow-x:hidden;min-height:100vh}
+        body.light{
+            --bg:#f8fafc;--bg2:rgba(0,0,0,.03);--bg3:rgba(0,0,0,.06);
+            --t1:#0f172a;--t2:rgba(0,0,0,.55);--t3:rgba(0,0,0,.3);
+            --bdr:rgba(0,0,0,.08);
+        }
+
+        /* === BG === */
+        .bg-fx{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+        .bg-fx .g{position:absolute;border-radius:50%;filter:blur(120px);opacity:.5;animation:drift 20s ease-in-out infinite}
+        .g1{width:500px;height:500px;background:radial-gradient(circle,rgba(124,58,237,.6),transparent);top:-10%;left:-8%;animation-delay:0s}
+        .g2{width:400px;height:400px;background:radial-gradient(circle,rgba(79,70,229,.5),transparent);bottom:10%;right:-5%;animation-delay:-7s}
+        .g3{width:350px;height:350px;background:radial-gradient(circle,rgba(244,114,182,.4),transparent);top:50%;left:40%;animation-delay:-14s}
+        @keyframes drift{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(60px,-50px) scale(1.1)}66%{transform:translate(-40px,60px) scale(.95)}}
+        body.light .g{opacity:.18}
+
+        /* === LAYOUT === */
+        .shell{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column}
+
+        /* NAV */
+        .nav{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;backdrop-filter:blur(16px);background:rgba(9,9,11,.7);border-bottom:1px solid var(--bdr)}
+        body.light .nav{background:rgba(248,250,252,.85)}
+        .nav-brand{display:flex;align-items:center;gap:10px}
+        .nav-logo{width:36px;height:36px;background:linear-gradient(135deg,var(--p),var(--acc));border-radius:10px;display:grid;place-items:center;font-size:18px;font-weight:800;color:#fff}
+        .nav-title{font-size:1.25rem;font-weight:700;background:linear-gradient(135deg,var(--p2),var(--acc));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .nav-actions{display:flex;gap:8px;align-items:center}
+        .nav-chip{padding:6px 14px;border-radius:20px;font-size:.75rem;font-weight:600;border:1px solid var(--bdr);background:var(--bg2);color:var(--t2);display:flex;align-items:center;gap:6px}
+        .nav-chip .dot{width:6px;height:6px;border-radius:50%;background:var(--ok);animation:blink 2s infinite}
+        @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+        .icon-btn{width:36px;height:36px;border-radius:10px;border:1px solid var(--bdr);background:var(--bg2);display:grid;place-items:center;cursor:pointer;transition:.2s;color:var(--t2);font-size:16px}
+        .icon-btn:hover{background:var(--bg3);border-color:var(--p);color:var(--t1);transform:translateY(-1px)}
+
+        /* MAIN GRID */
+        .main{flex:1;display:grid;grid-template-columns:1fr 380px;gap:20px;padding:20px 28px 28px;max-width:1600px;margin:0 auto;width:100%}
+        @media(max-width:1100px){.main{grid-template-columns:1fr}}
+
+        /* CARDS */
+        .card{background:var(--bg2);backdrop-filter:blur(16px);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;transition:.25s}
+        .card:hover{border-color:rgba(124,58,237,.25)}
+        .card-h{padding:16px 20px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:10px}
+        .card-h .badge{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--p),var(--p3));display:grid;place-items:center;font-size:13px;color:#fff}
+        .card-h h3{font-size:.95rem;font-weight:600;letter-spacing:-.3px}
+        .card-b{padding:20px}
+
+        /* VIDEO */
+        .vid-wrap{position:relative;border-radius:12px;overflow:hidden;background:#000;aspect-ratio:16/9}
+        .vid-wrap video,.vid-wrap img{width:100%;height:100%;object-fit:cover;display:block}
+        .vid-wrap canvas{position:absolute;top:0;left:0;width:100%;height:100%}
+        .vid-overlay{position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;pointer-events:none}
+        .live-pill{background:rgba(0,0,0,.7);backdrop-filter:blur(8px);padding:6px 14px;border-radius:20px;font-size:.75rem;font-weight:600;display:flex;align-items:center;gap:6px;border:1px solid rgba(52,211,153,.4)}
+        .live-pill .dot{width:6px;height:6px;border-radius:50%;background:var(--ok);animation:blink 2s infinite}
+        .fps-pill{background:rgba(0,0,0,.7);backdrop-filter:blur(8px);padding:6px 12px;border-radius:20px;font-size:.7rem;font-weight:500;color:var(--t2)}
+        #cameraStatus{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--t2);font-size:.85rem;background:rgba(0,0,0,.6)}
+        #cameraStatus button{padding:10px 24px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--p),var(--p3));color:#fff;font-weight:600;cursor:pointer;font-family:inherit;font-size:.85rem;transition:.2s}
+        #cameraStatus button:hover{transform:scale(1.04)}
+
+        /* BIG PREDICTION */
+        .hero-pred{text-align:center;padding:24px 20px;background:var(--bg2);border-radius:12px;margin-bottom:16px}
+        .hero-pred .letter{font-size:4.5rem;font-weight:900;background:linear-gradient(135deg,var(--p2),var(--acc));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1.1;min-height:72px}
+        .hero-pred .conf{font-size:.85rem;color:var(--t2);margin-top:4px;font-weight:500}
+        .hero-pred .conf-bar{height:4px;border-radius:4px;background:var(--bg3);margin-top:8px;overflow:hidden}
+        .hero-pred .conf-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--p),var(--acc));transition:width .3s}
+
+        /* PREDICTIONS LIST */
+        .pred-list{display:flex;flex-direction:column;gap:8px}
+        .pred-item{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;background:var(--bg2);cursor:pointer;transition:.2s;border:1px solid transparent}
+        .pred-item:hover{background:var(--bg3);border-color:var(--p);transform:translateX(3px)}
+        .pred-item .rank{width:22px;height:22px;border-radius:6px;background:var(--bg3);display:grid;place-items:center;font-size:.7rem;font-weight:700;color:var(--t3);flex-shrink:0}
+        .pred-item .lbl{font-weight:600;font-size:.95rem;flex:1}
+        .pred-item .pct{font-size:.8rem;font-weight:600;color:var(--ok)}
+        .pred-item .bar{flex:0 0 60px;height:4px;border-radius:2px;background:var(--bg3);overflow:hidden}
+        .pred-item .bar-f{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--p),var(--p2));transition:width .4s}
+
+        /* SENTENCE */
+        .sentence-area{min-height:80px;max-height:120px;overflow-y:auto;padding:14px;background:var(--bg2);border-radius:12px;display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start;margin-bottom:14px}
+        .sentence-area::-webkit-scrollbar{width:4px}
+        .sentence-area::-webkit-scrollbar-thumb{background:var(--p);border-radius:4px}
+        .sentence-area .empty{width:100%;text-align:center;color:var(--t3);font-size:.82rem;padding:20px 0;font-style:italic}
+        .chip{padding:8px 16px;border-radius:8px;background:linear-gradient(135deg,var(--p),var(--p3));color:#fff;font-weight:600;font-size:.85rem;cursor:pointer;transition:.2s;animation:pop .25s cubic-bezier(.34,1.56,.64,1)}
+        .chip:hover{transform:translateY(-2px) scale(1.05);box-shadow:0 6px 20px rgba(124,58,237,.4)}
+        @keyframes pop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
+
+        /* BUTTONS */
+        .btn-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+        .btn{padding:12px;border:none;border-radius:10px;font-family:inherit;font-size:.82rem;font-weight:600;cursor:pointer;transition:.2s;display:flex;align-items:center;justify-content:center;gap:6px}
+        .btn:active{transform:scale(.97)}
+        .btn-accent{background:linear-gradient(135deg,var(--p),var(--p3));color:#fff;box-shadow:0 4px 16px rgba(124,58,237,.3)}
+        .btn-accent:hover{box-shadow:0 8px 24px rgba(124,58,237,.5);transform:translateY(-1px)}
+        .btn-ghost{background:var(--bg2);color:var(--t1);border:1px solid var(--bdr)}
+        .btn-ghost:hover{background:var(--bg3);border-color:var(--p)}
+        .btn-err{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff}
+        .btn-err:hover{box-shadow:0 6px 20px rgba(239,68,68,.4)}
+
+        /* SETTINGS */
+        .setting{display:flex;align-items:center;justify-content:space-between;padding:8px 0}
+        .setting+.setting{border-top:1px solid var(--bdr)}
+        .setting span{font-size:.82rem;color:var(--t2)}
+        .tog{position:relative;width:40px;height:22px;cursor:pointer}
+        .tog input{opacity:0;width:0;height:0}
+        .tog .sl{position:absolute;inset:0;background:var(--bg3);border-radius:20px;transition:.3s}
+        .tog .sl::before{content:'';position:absolute;width:16px;height:16px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s}
+        .tog input:checked+.sl{background:linear-gradient(135deg,var(--p),var(--p3))}
+        .tog input:checked+.sl::before{transform:translateX(18px)}
+        .vol-slider{width:100%;height:4px;border-radius:4px;-webkit-appearance:none;background:var(--bg3);outline:none}
+        .vol-slider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:linear-gradient(135deg,var(--p),var(--p2));cursor:pointer;box-shadow:0 2px 8px rgba(124,58,237,.4)}
+
+        /* STATS */
+        .stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+        .stat{text-align:center;padding:14px 8px;background:var(--bg2);border-radius:10px;border:1px solid var(--bdr)}
+        .stat .val{font-size:1.6rem;font-weight:800;background:linear-gradient(135deg,var(--p2),var(--acc));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .stat .lab{font-size:.7rem;color:var(--t3);margin-top:2px}
+
+        /* KEYBOARD HINT */
+        .kb-hints{display:flex;gap:6px;flex-wrap:wrap;padding:12px 0 0}
+        .kb{padding:4px 10px;border-radius:6px;background:var(--bg2);border:1px solid var(--bdr);font-size:.65rem;color:var(--t3);font-weight:500}
+        .kb b{color:var(--t2)}
+
+        /* LEFT COL STACK */
+        .left-stack{display:flex;flex-direction:column;gap:20px}
+        .right-stack{display:flex;flex-direction:column;gap:20px}
+        @media(max-width:1100px){.right-stack{order:-1}}
+    </style>
+</head>
+<body>
+    <div class="bg-fx"><div class="g g1"></div><div class="g g2"></div><div class="g g3"></div></div>
+
+    <div class="shell">
+        <!-- NAV -->
+        <nav class="nav">
+            <div class="nav-brand">
+                <div class="nav-logo">🤟</div>
+                <span class="nav-title">SignSpeak AI</span>
+            </div>
+            <div class="nav-actions">
+                <div class="nav-chip"><div class="dot"></div>35 Gestures</div>
+                <div class="nav-chip" id="fpsChip">FPS: --</div>
+                <div class="icon-btn" onclick="toggleTheme()" id="themeBtn" title="Toggle theme">🌙</div>
+            </div>
+        </nav>
+
+        <!-- MAIN -->
+        <div class="main">
+            <!-- LEFT -->
+            <div class="left-stack">
+                <!-- VIDEO -->
+                <div class="card">
+                    <div class="card-h"><div class="badge">📹</div><h3>Live Recognition</h3></div>
+                    <div class="card-b">
+                        <div class="vid-wrap">
+                            <video id="webcam" autoplay playsinline muted style="display:none"></video>
+                            <img id="annotatedFrame" src="" alt="">
+                            <canvas id="captureCanvas" style="display:none"></canvas>
+                            <div class="vid-overlay">
+                                <div class="live-pill"><div class="dot"></div>LIVE</div>
+                                <div class="fps-pill" id="fpsLabel">-- FPS</div>
+                            </div>
+                            <div id="cameraStatus">
+                                <div style="font-size:2rem">📷</div>
+                                <div>Camera access required</div>
+                                <button onclick="startCamera()">Enable Camera</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SENTENCE -->
+                <div class="card">
+                    <div class="card-h"><div class="badge">💬</div><h3>Sentence Builder</h3></div>
+                    <div class="card-b">
+                        <div class="sentence-area" id="sentenceArea"><div class="empty">Sign a gesture to start building your sentence…</div></div>
+                        <div class="btn-row">
+                            <button class="btn btn-accent" onclick="speakSentence()">🔊 Speak All</button>
+                            <button class="btn btn-ghost" onclick="addTopWord()">➕ Add Sign</button>
+                            <button class="btn btn-ghost" onclick="deleteLast()">⌫ Delete</button>
+                            <button class="btn btn-err" onclick="clearAll()">✕ Clear</button>
+                        </div>
+                        <div class="kb-hints">
+                            <div class="kb"><b>Space</b> Add</div>
+                            <div class="kb"><b>⌫</b> Delete</div>
+                            <div class="kb"><b>S</b> Speak</div>
+                            <div class="kb"><b>C</b> Clear</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT -->
+            <div class="right-stack">
+                <!-- HERO PREDICTION -->
+                <div class="card">
+                    <div class="card-h"><div class="badge">🎯</div><h3>Current Sign</h3></div>
+                    <div class="card-b" style="padding-top:12px">
+                        <div class="hero-pred">
+                            <div class="letter" id="heroLetter">—</div>
+                            <div class="conf" id="heroConf">Waiting for gesture…</div>
+                            <div class="conf-bar"><div class="conf-fill" id="heroBar" style="width:0%"></div></div>
+                        </div>
+                        <div class="pred-list" id="predList"></div>
+                    </div>
+                </div>
+
+                <!-- STATS -->
+                <div class="card">
+                    <div class="card-h"><div class="badge">📊</div><h3>Session Stats</h3></div>
+                    <div class="card-b">
+                        <div class="stats">
+                            <div class="stat"><div class="val" id="sSigns">0</div><div class="lab">Signs</div></div>
+                            <div class="stat"><div class="val" id="sConf">0%</div><div class="lab">Avg Conf</div></div>
+                            <div class="stat"><div class="val" id="sWords">0</div><div class="lab">Words</div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SETTINGS -->
+                <div class="card">
+                    <div class="card-h"><div class="badge">⚙️</div><h3>Settings</h3></div>
+                    <div class="card-b">
+                        <div class="setting"><span>Speech Output</span><label class="tog"><input type="checkbox" id="togSpeech" checked><span class="sl"></span></label></div>
+                        <div class="setting"><span>Auto-Speak on Add</span><label class="tog"><input type="checkbox" id="togAutoSpeak"><span class="sl"></span></label></div>
+                        <div class="setting"><span>Auto-Add (90%/2s)</span><label class="tog"><input type="checkbox" id="togAutoAdd"><span class="sl"></span></label></div>
+                        <div class="setting"><span>Volume: <b id="volVal">80%</b></span><input type="range" class="vol-slider" min="0" max="100" value="80" id="volSlider"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+// === STATE ===
+let sentence=[], topWord='', cameraOn=false, processing=false;
+let totalSigns=0, confSum=0, fps=0, frameCount=0, lastFpsTime=Date.now();
+let autoAddWord=null, autoAddStart=null, lastAddTime=0;
+
+const video=document.getElementById('webcam');
+const canvas=document.getElementById('captureCanvas');
+const ctx=canvas.getContext('2d');
+const annotated=document.getElementById('annotatedFrame');
+
+// === CAMERA ===
+async function startCamera(){
+    try{
+        const stream=await navigator.mediaDevices.getUserMedia({video:{width:1280,height:720,facingMode:'user'}});
+        video.srcObject=stream;
+        video.style.display='block';
+        document.getElementById('cameraStatus').style.display='none';
+        cameraOn=true;
+        requestAnimationFrame(loop);
+    }catch(e){
+        document.getElementById('cameraStatus').innerHTML='<div style="font-size:2rem">⚠️</div><div>Camera denied. Please allow access.</div><button onclick="startCamera()">Retry</button>';
+    }
+}
+
+// === INFERENCE LOOP ===
+let lastSendTime=0;
+function loop(){
+    if(!cameraOn)return;
+    const now=Date.now();
+    // Send frame every 150ms (~6-7 FPS to server)
+    if(now-lastSendTime>150 && !processing){
+        lastSendTime=now;
+        sendFrame();
+    }
+    // FPS counter
+    frameCount++;
+    if(now-lastFpsTime>=1000){
+        fps=frameCount;
+        frameCount=0;
+        lastFpsTime=now;
+        document.getElementById('fpsLabel').textContent=fps+' FPS';
+        document.getElementById('fpsChip').textContent='FPS: '+fps;
+    }
+    requestAnimationFrame(loop);
+}
+
+function sendFrame(){
+    if(!video.videoWidth)return;
+    canvas.width=640;canvas.height=480;
+    ctx.drawImage(video,0,0,640,480);
+    const dataUrl=canvas.toDataURL('image/jpeg',0.7);
+    processing=true;
+    fetch('/predict',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({frame:dataUrl})})
+    .then(r=>r.json()).then(handleResult).catch(()=>{}).finally(()=>{processing=false});
+}
+
+function handleResult(data){
+    if(data.error)return;
+    // Show annotated frame
+    if(data.frame) annotated.src='data:image/jpeg;base64,'+data.frame;
+    // Predictions
+    if(!data.predictions||!data.predictions.length)return;
+    const preds=data.predictions;
+    topWord=preds[0].label;
+    const topConf=preds[0].confidence;
+    // Hero
+    document.getElementById('heroLetter').textContent=topWord;
+    document.getElementById('heroConf').textContent=(topConf*100).toFixed(1)+'% confidence';
+    document.getElementById('heroBar').style.width=(topConf*100)+'%';
+    // List
+    const list=document.getElementById('predList');
+    list.innerHTML=preds.map((p,i)=>{
+        const c=(p.confidence*100).toFixed(1);
+        return `<div class="pred-item" onclick="speak('${p.label}')"><div class="rank">${i+1}</div><div class="lbl">${p.label}</div><div class="bar"><div class="bar-f" style="width:${c}%"></div></div><div class="pct">${c}%</div></div>`;
+    }).join('');
+    // Stats
+    totalSigns++;confSum+=topConf;
+    document.getElementById('sSigns').textContent=totalSigns;
+    document.getElementById('sConf').textContent=((confSum/totalSigns)*100).toFixed(0)+'%';
+    document.getElementById('sWords').textContent=sentence.length;
+    // Auto-add
+    if(document.getElementById('togAutoAdd').checked && topConf>=.9){
+        const now=Date.now();
+        if(now-lastAddTime<500)return;
+        if(autoAddWord===topWord){
+            if(autoAddStart&&(now-autoAddStart>=2000)){addTopWord();lastAddTime=now;autoAddWord=null;autoAddStart=null;}
+        }else{autoAddWord=topWord;autoAddStart=now;}
+    }else{autoAddWord=null;autoAddStart=null;}
+}
+
+// === ACTIONS ===
+function addTopWord(){if(topWord){sentence.push(topWord);renderSentence();if(document.getElementById('togAutoSpeak').checked)speak(topWord);}}
+function deleteLast(){sentence.pop();renderSentence();}
+function clearAll(){sentence=[];renderSentence();}
+function speakSentence(){speak(sentence.join(' '));}
+
+function renderSentence(){
+    const el=document.getElementById('sentenceArea');
+    document.getElementById('sWords').textContent=sentence.length;
+    if(!sentence.length){el.innerHTML='<div class="empty">Sign a gesture to start building your sentence…</div>';return;}
+    el.innerHTML=sentence.map(w=>`<div class="chip" onclick="speak('${w}')">${w}</div>`).join('');
+}
+
+function speak(text){
+    if(!text||!document.getElementById('togSpeech').checked)return;
+    const u=new SpeechSynthesisUtterance(text);
+    u.volume=document.getElementById('volSlider').value/100;
+    u.rate=.9;
+    speechSynthesis.cancel();speechSynthesis.speak(u);
+}
+
+// === SETTINGS ===
+document.getElementById('volSlider').oninput=e=>{document.getElementById('volVal').textContent=e.target.value+'%';};
+
+// === THEME ===
+function toggleTheme(){
+    document.body.classList.toggle('light');
+    const l=document.body.classList.contains('light');
+    document.getElementById('themeBtn').textContent=l?'☀️':'🌙';
+    localStorage.setItem('theme',l?'light':'dark');
+}
+if(localStorage.getItem('theme')==='light'){document.body.classList.add('light');document.getElementById('themeBtn').textContent='☀️';}
+
+// === KEYBOARD ===
+document.onkeydown=e=>{
+    if(e.target.tagName==='INPUT')return;
+    if(e.code==='Space'){e.preventDefault();addTopWord();}
+    else if(e.code==='Backspace'){e.preventDefault();deleteLast();}
+    else if(e.code==='KeyS')speakSentence();
+    else if(e.code==='KeyC')clearAll();
+};
+</script>
+</body>
+</html>
