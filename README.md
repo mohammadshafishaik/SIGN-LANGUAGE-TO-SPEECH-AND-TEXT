@@ -27,7 +27,7 @@ Real-time Indian Sign Language (ISL) recognition system with speech output using
 
 ```bash
 # Clone repository
-git clone https://github.com/YOUR_USERNAME/isl-recognition.git
+git clone https://github.com/mohammadshafishaik/SIGN-LANGUAGE-TO-SPEECH-AND-TEXT.git
 cd isl-recognition
 
 # Create virtual environment
