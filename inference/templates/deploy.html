@@ -3,112 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SignSpeak AI - Professional Interface</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>SignSpeak AI - Real-Time Sign Language Recognition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* Dynamic Deep Dark Theme */
-            --bg-base: #0f1115;
-            --bg-surface: rgba(22, 25, 33, 0.65);
-            --bg-surface-hover: rgba(30, 34, 45, 0.85);
-            
-            --border-light: rgba(255, 255, 255, 0.08);
-            --border-focus: rgba(255, 255, 255, 0.2);
-            
-            --text-primary: #ffffff;
-            --text-secondary: #94a3b8;
-            --text-muted: #64748b;
-            
-            --accent-primary: #3b82f6;
-            --accent-gradient: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-            --accent-glow: rgba(59, 130, 246, 0.5);
-            
-            --danger-color: #ef4444;
-            --danger-bg: rgba(239, 68, 68, 0.15);
-            
-            --success-color: #10b981;
-            
-            --radius-lg: 16px;
+            --bg-base: #0a0b0f;
+            --bg-surface: rgba(18, 20, 28, 0.7);
+            --bg-surface-hover: rgba(26, 29, 40, 0.85);
+
+            --border-light: rgba(255, 255, 255, 0.07);
+            --border-focus: rgba(255, 255, 255, 0.18);
+
+            --text-primary: #f0f2f5;
+            --text-secondary: #8b95a5;
+            --text-muted: #555e6e;
+
+            --accent: #6366f1;
+            --accent-2: #a78bfa;
+            --accent-gradient: linear-gradient(135deg, #6366f1 0%, #a78bfa 100%);
+            --accent-glow: rgba(99, 102, 241, 0.4);
+
+            --danger: #f43f5e;
+            --danger-bg: rgba(244, 63, 94, 0.12);
+            --success: #22c55e;
+
+            --radius-lg: 14px;
             --radius-md: 10px;
             --radius-sm: 6px;
-            
-            --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
-            --blur-glass: blur(16px);
-            
-            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+            --blur: blur(20px);
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg-base);
+            background: var(--bg-base);
             color: var(--text-primary);
             line-height: 1.5;
             min-height: 100vh;
             overflow-x: hidden;
-            position: relative;
         }
 
-        /* Animated Mesh Background */
+        /* Ambient glow blobs */
         body::before, body::after {
             content: '';
             position: fixed;
-            width: 800px;
-            height: 800px;
+            width: 700px;
+            height: 700px;
             border-radius: 50%;
-            filter: blur(120px);
-            opacity: 0.15;
+            filter: blur(140px);
+            opacity: 0.12;
             z-index: -1;
             pointer-events: none;
-            animation: float 20s infinite ease-in-out alternate;
+            animation: drift 25s infinite ease-in-out alternate;
         }
+        body::before { background: #6366f1; top: -250px; left: -200px; }
+        body::after  { background: #a78bfa; bottom: -250px; right: -200px; animation-delay: -12s; }
 
-        body::before {
-            background: #3b82f6;
-            top: -200px;
-            left: -200px;
-        }
-
-        body::after {
-            background: #8b5cf6;
-            bottom: -200px;
-            right: -200px;
-            animation-delay: -10s;
-        }
-
-        @keyframes float {
-            0% { transform: translate(0, 0) scale(1); }
-            100% { transform: translate(100px, 50px) scale(1.2); }
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 32px 24px;
-            display: grid;
-            grid-template-columns: 1fr 380px;
-            gap: 28px;
-            position: relative;
-            z-index: 1;
-        }
-
-        @media (max-width: 1024px) {
-            .container {
-                grid-template-columns: 1fr;
-            }
+        @keyframes drift {
+            0%   { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(80px, 40px) scale(1.15); }
         }
 
         /* Header */
         header {
-            background: rgba(15, 17, 21, 0.8);
-            backdrop-filter: var(--blur-glass);
+            background: rgba(10, 11, 15, 0.85);
+            backdrop-filter: var(--blur);
             border-bottom: 1px solid var(--border-light);
-            padding: 16px 32px;
+            padding: 14px 28px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -116,366 +80,302 @@
             top: 0;
             z-index: 50;
         }
-
         .header-title {
-            font-size: 1.25rem;
+            font-size: 1.15rem;
             font-weight: 700;
-            letter-spacing: -0.025em;
+            letter-spacing: -0.02em;
             background: var(--accent-gradient);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-
         .header-status {
             display: flex;
-            gap: 20px;
-            font-size: 0.875rem;
+            gap: 16px;
+            font-size: 0.8rem;
             color: var(--text-secondary);
             font-weight: 500;
         }
-
-        #fpsCounter {
-            background: rgba(255,255,255,0.05);
+        .header-chip {
+            background: rgba(255,255,255,0.04);
             padding: 4px 10px;
             border-radius: var(--radius-sm);
             border: 1px solid var(--border-light);
             font-variant-numeric: tabular-nums;
         }
 
+        /* Layout */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px 20px;
+            display: grid;
+            grid-template-columns: 1fr 360px;
+            gap: 24px;
+            position: relative;
+            z-index: 1;
+        }
+        @media (max-width: 1024px) { .container { grid-template-columns: 1fr; } }
+
         /* Glass Cards */
         .card {
             background: var(--bg-surface);
-            backdrop-filter: var(--blur-glass);
-            -webkit-backdrop-filter: var(--blur-glass);
+            backdrop-filter: var(--blur);
             border: 1px solid var(--border-light);
             border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-glass);
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            transition: var(--transition-smooth);
+            transition: var(--transition);
         }
-
-        .card:hover {
-            border-color: var(--border-focus);
-            background: var(--bg-surface-hover);
-        }
-
+        .card:hover { border-color: var(--border-focus); }
         .card-header {
-            padding: 18px 24px;
+            padding: 14px 20px;
             border-bottom: 1px solid var(--border-light);
             font-weight: 600;
-            font-size: 0.85rem;
+            font-size: 0.78rem;
             text-transform: uppercase;
-            letter-spacing: 0.1em;
+            letter-spacing: 0.08em;
             color: var(--text-secondary);
             display: flex;
             align-items: center;
+            gap: 10px;
         }
-
         .card-header::before {
             content: '';
-            display: inline-block;
-            width: 8px;
-            height: 8px;
+            width: 7px; height: 7px;
             background: var(--accent-gradient);
             border-radius: 50%;
-            margin-right: 12px;
-            box-shadow: 0 0 10px var(--accent-glow);
+            box-shadow: 0 0 8px var(--accent-glow);
+            flex-shrink: 0;
         }
+        .card-body { padding: 20px; }
 
-        .card-body {
-            padding: 24px;
-        }
+        .left-col, .right-col { display: flex; flex-direction: column; gap: 24px; }
 
-        /* Left Column */
-        .left-col {
-            display: flex;
-            flex-direction: column;
-            gap: 28px;
-        }
-
-        /* Video Area */
+        /* ===== VIDEO ===== */
         .video-container {
             position: relative;
-            background-color: #000;
+            background: #000;
             border-radius: var(--radius-md);
             overflow: hidden;
             aspect-ratio: 16/9;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
-            border: 1px solid rgba(255,255,255,0.05);
         }
-
-        .video-container video, .video-container img {
+        #webcam {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            display: block;
+        }
+        #landmarkCanvas {
             position: absolute;
-            top: 0;
-            left: 0;
+            top: 0; left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
         }
-        
-        .video-container canvas {
-            display: none;
-        }
+        .capture-canvas { display: none; }
 
         .camera-overlay {
             position: absolute;
+            inset: 0;
             z-index: 10;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 20px;
-            background-color: rgba(15, 17, 21, 0.85);
-            backdrop-filter: blur(8px);
-            padding: 40px;
-            border-radius: var(--radius-md);
+            justify-content: center;
+            gap: 16px;
+            background: rgba(10, 11, 15, 0.88);
+            backdrop-filter: blur(6px);
             text-align: center;
-            border: 1px solid var(--border-light);
         }
+        .camera-overlay.hidden { display: none; }
 
         .status-badge {
             position: absolute;
-            top: 16px;
-            left: 16px;
-            background: rgba(0, 0, 0, 0.6);
+            top: 12px; left: 12px;
+            background: rgba(0,0,0,0.55);
             backdrop-filter: blur(4px);
             color: #fff;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.75rem;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 0.7rem;
             font-weight: 600;
             z-index: 5;
-            display: flex;
+            display: none;
             align-items: center;
-            gap: 8px;
-            border: 1px solid rgba(255,255,255,0.15);
-            letter-spacing: 0.05em;
+            gap: 6px;
+            border: 1px solid rgba(255,255,255,0.12);
+            letter-spacing: 0.04em;
         }
-
-        .status-badge.live::before {
+        .status-badge.visible { display: flex; }
+        .status-badge::before {
             content: '';
-            display: block;
-            width: 8px;
-            height: 8px;
+            width: 7px; height: 7px;
             border-radius: 50%;
-            background-color: var(--success-color);
-            box-shadow: 0 0 8px var(--success-color);
-            animation: pulse 2s infinite;
+            background: var(--success);
+            box-shadow: 0 0 6px var(--success);
+            animation: blink 1.8s infinite;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50%      { opacity: 0.3; }
         }
 
-        @keyframes pulse {
-            0% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(0.8); }
-            100% { opacity: 1; transform: scale(1); }
+        .latency-badge {
+            position: absolute;
+            top: 12px; right: 12px;
+            background: rgba(0,0,0,0.55);
+            backdrop-filter: blur(4px);
+            color: var(--text-secondary);
+            padding: 4px 10px;
+            border-radius: 16px;
+            font-size: 0.68rem;
+            font-weight: 600;
+            z-index: 5;
+            display: none;
+            border: 1px solid rgba(255,255,255,0.08);
+            font-variant-numeric: tabular-nums;
         }
+        .latency-badge.visible { display: block; }
 
         /* Buttons */
         .btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            padding: 10px 18px;
+            padding: 9px 16px;
             border-radius: var(--radius-sm);
-            font-size: 0.875rem;
+            font-size: 0.82rem;
             font-weight: 600;
             cursor: pointer;
-            transition: var(--transition-smooth);
+            transition: var(--transition);
             border: 1px solid transparent;
             font-family: inherit;
-            letter-spacing: 0.025em;
         }
-
-        .btn:active {
-            transform: scale(0.97);
-        }
-
+        .btn:active { transform: scale(0.96); }
         .btn-primary {
             background: var(--accent-gradient);
             color: #fff;
-            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
-            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 3px 12px rgba(99,102,241,0.25);
         }
-
-        .btn-primary:hover {
-            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
-            transform: translateY(-1px);
-        }
-
+        .btn-primary:hover { box-shadow: 0 5px 18px rgba(99,102,241,0.4); transform: translateY(-1px); }
         .btn-secondary {
-            background: rgba(255,255,255,0.05);
+            background: rgba(255,255,255,0.04);
             border-color: var(--border-light);
             color: var(--text-primary);
         }
-
-        .btn-secondary:hover {
-            background: rgba(255,255,255,0.1);
-            border-color: var(--border-focus);
-        }
-
+        .btn-secondary:hover { background: rgba(255,255,255,0.08); border-color: var(--border-focus); }
         .btn-danger {
             background: var(--danger-bg);
-            border-color: rgba(239, 68, 68, 0.3);
-            color: #fca5a5;
+            border-color: rgba(244,63,94,0.25);
+            color: #fda4af;
         }
+        .btn-danger:hover { background: var(--danger); color: #fff; }
 
-        .btn-danger:hover {
-            background: var(--danger-color);
-            color: #fff;
-            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
-        }
-
-        /* Sentence Builder */
+        /* Sentence builder */
         .sentence-display {
-            min-height: 100px;
-            padding: 20px;
-            background: rgba(0,0,0,0.2);
+            min-height: 80px;
+            padding: 16px;
+            background: rgba(0,0,0,0.22);
             border: 1px solid var(--border-light);
             border-radius: var(--radius-md);
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 8px;
             align-content: flex-start;
-            box-shadow: inset 0 2px 10px rgba(0,0,0,0.2);
         }
-
         .empty-text {
             color: var(--text-muted);
-            font-size: 0.875rem;
+            font-size: 0.82rem;
             font-style: italic;
             width: 100%;
             text-align: center;
-            padding-top: 20px;
+            padding-top: 14px;
         }
-
         .word-chip {
             background: var(--accent-gradient);
             color: white;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.875rem;
+            padding: 5px 12px;
+            border-radius: 16px;
+            font-size: 0.82rem;
             font-weight: 600;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            border: 1px solid rgba(255,255,255,0.2);
+            animation: chipIn 0.25s cubic-bezier(0.175,0.885,0.32,1.275);
         }
+        @keyframes chipIn { 0% { transform: scale(0.7); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
-        @keyframes popIn {
-            0% { transform: scale(0.8); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
+        .actions-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
 
-        .actions-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
-        }
-
-        /* Right Column */
-        .right-col {
-            display: flex;
-            flex-direction: column;
-            gap: 28px;
-        }
-
-        /* Current Prediction */
+        /* Prediction panel */
         .prediction-hero {
             text-align: center;
-            padding: 32px 20px;
-            background: rgba(0,0,0,0.2);
+            padding: 28px 16px;
+            background: rgba(0,0,0,0.22);
             border-radius: var(--radius-md);
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             border: 1px solid var(--border-light);
             position: relative;
             overflow: hidden;
         }
-        
         .prediction-hero::before {
             content: '';
             position: absolute;
             top: 0; left: 0; right: 0;
             height: 2px;
             background: var(--accent-gradient);
-            opacity: 0.5;
+            opacity: 0.4;
         }
-
         .prediction-text {
-            font-size: 5rem;
+            font-size: 4.5rem;
             font-weight: 800;
             line-height: 1;
             background: var(--accent-gradient);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 12px;
-            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+            margin-bottom: 10px;
         }
-
         .prediction-conf {
-            font-size: 0.875rem;
+            font-size: 0.78rem;
             color: var(--text-secondary);
             font-weight: 600;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.04em;
             text-transform: uppercase;
         }
 
-        /* List */
-        .pred-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
+        .pred-list { display: flex; flex-direction: column; gap: 8px; }
         .pred-item {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 12px 16px;
-            background: rgba(255,255,255,0.03);
+            padding: 10px 14px;
+            background: rgba(255,255,255,0.025);
             border: 1px solid var(--border-light);
             border-radius: var(--radius-sm);
-            font-size: 0.875rem;
-            transition: var(--transition-smooth);
+            font-size: 0.82rem;
+            transition: var(--transition);
         }
-        
-        .pred-item:hover {
-            background: rgba(255,255,255,0.08);
-            transform: translateX(4px);
-            border-color: rgba(255,255,255,0.15);
-        }
-
-        .pred-label {
-            font-weight: 700;
-            width: 45px;
-            color: var(--text-primary);
-        }
-
-        .pred-bar-container {
+        .pred-item:hover { background: rgba(255,255,255,0.06); transform: translateX(3px); }
+        .pred-label { font-weight: 700; width: 40px; }
+        .pred-bar-wrap {
             flex: 1;
-            height: 6px;
-            background-color: rgba(0,0,0,0.3);
+            height: 5px;
+            background: rgba(0,0,0,0.3);
             border-radius: 3px;
-            margin: 0 16px;
+            margin: 0 12px;
             overflow: hidden;
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);
         }
-
-        .pred-bar-fill {
+        .pred-bar {
             height: 100%;
             background: var(--accent-gradient);
-            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             border-radius: 3px;
+            transition: width 0.35s ease;
         }
-
         .pred-val {
             font-variant-numeric: tabular-nums;
-            width: 45px;
+            width: 42px;
             text-align: right;
             color: var(--text-secondary);
             font-weight: 600;
+            font-size: 0.78rem;
         }
 
         /* Settings */
@@ -483,141 +383,88 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 14px 0;
+            padding: 12px 0;
             border-bottom: 1px solid var(--border-light);
         }
+        .setting-row:last-child { border-bottom: none; padding-bottom: 0; }
+        .setting-label { font-size: 0.82rem; font-weight: 500; }
 
-        .setting-row:last-child {
-            border-bottom: none;
-            padding-bottom: 0;
-        }
-
-        .setting-label {
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: var(--text-primary);
-        }
-
-        /* Toggle */
-        .toggle-switch {
-            position: relative;
-            display: inline-block;
-            width: 48px;
-            height: 26px;
-        }
-
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(255,255,255,0.1);
-            transition: .4s;
-            border-radius: 26px;
+        .toggle { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .toggle input { opacity: 0; width: 0; height: 0; }
+        .toggle-track {
+            position: absolute; inset: 0;
+            background: rgba(255,255,255,0.08);
+            border-radius: 24px;
             border: 1px solid var(--border-light);
+            cursor: pointer;
+            transition: .3s;
         }
-
-        .slider:before {
-            position: absolute;
+        .toggle-track::before {
             content: "";
-            height: 18px;
-            width: 18px;
-            left: 3px;
-            bottom: 3px;
-            background-color: var(--text-secondary);
-            transition: .4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: absolute;
+            width: 16px; height: 16px;
+            left: 3px; bottom: 3px;
+            background: var(--text-secondary);
             border-radius: 50%;
+            transition: .3s cubic-bezier(0.4,0,0.2,1);
         }
+        input:checked + .toggle-track { background: var(--accent-gradient); border-color: transparent; }
+        input:checked + .toggle-track::before { transform: translateX(20px); background: #fff; }
 
-        input:checked + .slider {
-            background: var(--accent-gradient);
-            border-color: transparent;
-        }
+        .range-slider { width: 110px; accent-color: var(--accent); }
 
-        input:checked + .slider:before {
-            transform: translateX(22px);
-            background-color: #fff;
-            box-shadow: 0 0 10px rgba(255,255,255,0.5);
-        }
-
-        .range-slider {
-            width: 120px;
-            accent-color: var(--accent-primary);
-        }
-
-        /* Stats grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-        }
-        
+        /* Stats */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .stat-box {
-            padding: 16px;
+            padding: 14px;
             background: rgba(0,0,0,0.2);
             border: 1px solid var(--border-light);
             border-radius: var(--radius-md);
             text-align: center;
-            transition: var(--transition-smooth);
+            transition: var(--transition);
         }
-        
-        .stat-box:hover {
-            background: rgba(255,255,255,0.03);
-            border-color: var(--border-focus);
-        }
-
+        .stat-box:hover { border-color: var(--border-focus); }
         .stat-val {
-            font-size: 1.75rem;
+            font-size: 1.6rem;
             font-weight: 800;
-            color: var(--text-primary);
             font-variant-numeric: tabular-nums;
         }
-
         .stat-label {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             color: var(--text-secondary);
             text-transform: uppercase;
             letter-spacing: 0.1em;
-            margin-top: 6px;
+            margin-top: 4px;
             font-weight: 600;
         }
     </style>
 </head>
 <body>
     <header>
-        <div class="header-title">SignSpeak AI Inference Console</div>
+        <div class="header-title">SignSpeak AI</div>
         <div class="header-status">
-            <span id="fpsCounter">FPS: --</span>
-            <span>Model: v2.0 (35 Classes)</span>
+            <span class="header-chip" id="fpsCounter">FPS: --</span>
+            <span class="header-chip">Model v2 / 35 Classes</span>
         </div>
     </header>
 
     <div class="container">
         <!-- Left Column -->
         <div class="left-col">
-            <!-- Video Feed -->
+            <!-- Camera -->
             <div class="card">
-                <div class="card-header">Camera Feed</div>
+                <div class="card-header">Live Camera</div>
                 <div class="card-body">
                     <div class="video-container">
-                        <video id="webcam" autoplay playsinline muted style="display:none"></video>
-                        <img id="annotatedFrame" src="" alt="">
-                        <canvas id="captureCanvas"></canvas>
-                        
-                        <div class="status-badge live" id="liveBadge" style="display: none;">LIVE</div>
-                        
+                        <video id="webcam" autoplay playsinline muted></video>
+                        <canvas id="landmarkCanvas"></canvas>
+                        <canvas id="captureCanvas" class="capture-canvas"></canvas>
+                        <div class="status-badge" id="liveBadge">LIVE</div>
+                        <div class="latency-badge" id="latencyBadge">-- ms</div>
                         <div class="camera-overlay" id="cameraOverlay">
-                            <div style="font-size: 1rem; font-weight: 500;">Camera Authorization Required</div>
-                            <div style="font-size: 0.875rem; color: #ccc; margin-bottom: 8px;">Please allow browser camera access to begin real-time inference.</div>
-                            <button class="btn btn-primary" onclick="startCamera()">Authorize Camera</button>
+                            <div style="font-size: 1rem; font-weight: 600; color: #fff;">Camera Access Required</div>
+                            <div style="font-size: 0.82rem; color: #aaa; max-width: 280px;">Allow browser camera access to begin real-time sign language recognition.</div>
+                            <button class="btn btn-primary" onclick="startCamera()">Enable Camera</button>
                         </div>
                     </div>
                 </div>
@@ -625,16 +472,16 @@
 
             <!-- Sentence Builder -->
             <div class="card">
-                <div class="card-header">Sequence Builder</div>
+                <div class="card-header">Sentence Builder</div>
                 <div class="card-body">
                     <div class="sentence-display" id="sentenceDisplay">
-                        <div class="empty-text">Sequence empty. Begin inference to populate.</div>
+                        <div class="empty-text">No signs captured yet. Start signing to build a sentence.</div>
                     </div>
                     <div class="actions-grid">
-                        <button class="btn btn-primary" onclick="speakSentence()">Synthesize Audio</button>
-                        <button class="btn btn-secondary" onclick="addTopWord()">Append Sign</button>
-                        <button class="btn btn-secondary" onclick="deleteLast()">Remove Last</button>
-                        <button class="btn btn-danger" onclick="clearAll()">Clear All</button>
+                        <button class="btn btn-primary" onclick="speakSentence()">Speak</button>
+                        <button class="btn btn-secondary" onclick="addTopWord()">Add Sign</button>
+                        <button class="btn btn-secondary" onclick="deleteLast()">Undo</button>
+                        <button class="btn btn-danger" onclick="clearAll()">Clear</button>
                     </div>
                 </div>
             </div>
@@ -644,45 +491,34 @@
         <div class="right-col">
             <!-- Detection -->
             <div class="card">
-                <div class="card-header">Real-Time Detection</div>
+                <div class="card-header">Detection</div>
                 <div class="card-body">
                     <div class="prediction-hero">
                         <div class="prediction-text" id="heroLabel">-</div>
-                        <div class="prediction-conf" id="heroConf">Awaiting input...</div>
+                        <div class="prediction-conf" id="heroConf">Awaiting input</div>
                     </div>
-                    <div class="pred-list" id="predictionList">
-                        <!-- Items injected by JS -->
-                    </div>
+                    <div class="pred-list" id="predictionList"></div>
                 </div>
             </div>
 
-            <!-- Configuration -->
+            <!-- Settings -->
             <div class="card">
-                <div class="card-header">System Configuration</div>
+                <div class="card-header">Settings</div>
                 <div class="card-body">
                     <div class="setting-row">
-                        <span class="setting-label">Audio Synthesis Output</span>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="cfgSpeech" checked>
-                            <span class="slider"></span>
-                        </label>
+                        <span class="setting-label">Speech Output</span>
+                        <label class="toggle"><input type="checkbox" id="cfgSpeech" checked><span class="toggle-track"></span></label>
                     </div>
                     <div class="setting-row">
-                        <span class="setting-label">Auto-Synthesize on Append</span>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="cfgAutoSpeak">
-                            <span class="slider"></span>
-                        </label>
+                        <span class="setting-label">Auto-Speak on Add</span>
+                        <label class="toggle"><input type="checkbox" id="cfgAutoSpeak"><span class="toggle-track"></span></label>
                     </div>
                     <div class="setting-row">
-                        <span class="setting-label">Auto-Append (Threshold: 90%, 2s)</span>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="cfgAutoAdd">
-                            <span class="slider"></span>
-                        </label>
+                        <span class="setting-label">Auto-Add (90% / 2s)</span>
+                        <label class="toggle"><input type="checkbox" id="cfgAutoAdd"><span class="toggle-track"></span></label>
                     </div>
                     <div class="setting-row">
-                        <span class="setting-label">Output Volume (<span id="volDisplay">80%</span>)</span>
+                        <span class="setting-label">Volume (<span id="volDisplay">80%</span>)</span>
                         <input type="range" class="range-slider" id="cfgVolume" min="0" max="100" value="80">
                     </div>
                 </div>
@@ -690,16 +526,16 @@
 
             <!-- Telemetry -->
             <div class="card">
-                <div class="card-header">Session Telemetry</div>
+                <div class="card-header">Session Stats</div>
                 <div class="card-body">
                     <div class="stats-grid">
                         <div class="stat-box">
                             <div class="stat-val" id="statInferences">0</div>
-                            <div class="stat-label">Total Inferences</div>
+                            <div class="stat-label">Inferences</div>
                         </div>
                         <div class="stat-box">
                             <div class="stat-val" id="statConf">0.0%</div>
-                            <div class="stat-label">Mean Confidence</div>
+                            <div class="stat-label">Avg Confidence</div>
                         </div>
                     </div>
                 </div>
@@ -708,149 +544,176 @@
     </div>
 
     <script>
-        // State
+        // ============================================================
+        // STATE
+        // ============================================================
         let sequence = [];
         let currentLabel = '';
         let isCameraActive = false;
-        let isProcessing = false;
-        
+        let inferenceInFlight = false;
+
         // Telemetry
         let totalInferences = 0;
         let cumulativeConfidence = 0;
-        let framesCounted = 0;
-        let lastFpsTimestamp = Date.now();
-        
-        // Auto-add logic
+
+        // Auto-add tracking
         let trackedLabel = null;
         let trackingStartTime = null;
         let lastAppendTime = 0;
 
-        const domElements = {
-            video: document.getElementById('webcam'),
-            canvas: document.getElementById('captureCanvas'),
-            annotatedFrame: document.getElementById('annotatedFrame'),
-            cameraOverlay: document.getElementById('cameraOverlay'),
-            liveBadge: document.getElementById('liveBadge'),
-            fpsCounter: document.getElementById('fpsCounter'),
-            heroLabel: document.getElementById('heroLabel'),
-            heroConf: document.getElementById('heroConf'),
-            predictionList: document.getElementById('predictionList'),
-            sentenceDisplay: document.getElementById('sentenceDisplay'),
-            statInferences: document.getElementById('statInferences'),
-            statConf: document.getElementById('statConf'),
-            cfgSpeech: document.getElementById('cfgSpeech'),
-            cfgAutoSpeak: document.getElementById('cfgAutoSpeak'),
-            cfgAutoAdd: document.getElementById('cfgAutoAdd'),
-            cfgVolume: document.getElementById('cfgVolume'),
-            volDisplay: document.getElementById('volDisplay')
+        // FPS counter for the camera render loop (not inference)
+        let displayFrames = 0;
+        let lastFpsTime = performance.now();
+
+        // DOM refs
+        const $ = id => document.getElementById(id);
+        const dom = {
+            video: $('webcam'),
+            captureCanvas: $('captureCanvas'),
+            landmarkCanvas: $('landmarkCanvas'),
+            overlay: $('cameraOverlay'),
+            liveBadge: $('liveBadge'),
+            latencyBadge: $('latencyBadge'),
+            fpsCounter: $('fpsCounter'),
+            heroLabel: $('heroLabel'),
+            heroConf: $('heroConf'),
+            predList: $('predictionList'),
+            sentenceDisplay: $('sentenceDisplay'),
+            statInferences: $('statInferences'),
+            statConf: $('statConf'),
+            cfgSpeech: $('cfgSpeech'),
+            cfgAutoSpeak: $('cfgAutoSpeak'),
+            cfgAutoAdd: $('cfgAutoAdd'),
+            cfgVolume: $('cfgVolume'),
+            volDisplay: $('volDisplay'),
         };
 
-        const ctx = domElements.canvas.getContext('2d', { willReadFrequently: true });
+        const captureCtx = dom.captureCanvas.getContext('2d', { willReadFrequently: true });
+        const landmarkCtx = dom.landmarkCanvas.getContext('2d');
 
+        // ============================================================
+        // CAMERA STARTUP
+        // ============================================================
         async function startCamera() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { width: 1280, height: 720, facingMode: 'user' }
+                    video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' }
                 });
-                domElements.video.srcObject = stream;
-                domElements.video.style.display = 'block';
-                domElements.cameraOverlay.style.display = 'none';
-                domElements.liveBadge.style.display = 'flex';
+                dom.video.srcObject = stream;
+                await dom.video.play();
+                dom.overlay.classList.add('hidden');
+                dom.liveBadge.classList.add('visible');
+                dom.latencyBadge.classList.add('visible');
                 isCameraActive = true;
-                requestAnimationFrame(processFrameLoop);
+
+                // Start the display loop (always smooth)
+                requestAnimationFrame(displayLoop);
+                // Start inference dispatch (independent timer)
+                scheduleInference();
             } catch (err) {
-                console.error("Camera access denied:", err);
-                domElements.cameraOverlay.innerHTML = `
-                    <div style="font-size: 1rem; font-weight: 500; color: var(--danger-color);">Authorization Failed</div>
-                    <div style="font-size: 0.875rem; color: #ccc; margin-bottom: 8px;">Check browser permissions and try again.</div>
-                    <button class="btn btn-secondary" style="background:#fff;color:#000" onclick="startCamera()">Retry Connection</button>
+                console.error("Camera error:", err);
+                dom.overlay.innerHTML = `
+                    <div style="font-size:1rem;font-weight:600;color:var(--danger)">Camera Denied</div>
+                    <div style="font-size:0.82rem;color:#aaa;max-width:280px">Check browser permissions and try again.</div>
+                    <button class="btn btn-primary" onclick="startCamera()">Retry</button>
                 `;
             }
         }
 
-        let lastNetworkRequest = 0;
-        function processFrameLoop() {
+        // ============================================================
+        // DISPLAY LOOP — runs at native refresh rate, never blocks
+        // ============================================================
+        function displayLoop() {
             if (!isCameraActive) return;
-            
-            const now = Date.now();
-            
-            // Dispatch frame every ~150ms to prevent network saturation
-            if (now - lastNetworkRequest > 150 && !isProcessing && domElements.video.videoWidth > 0) {
-                lastNetworkRequest = now;
+
+            displayFrames++;
+            const now = performance.now();
+            if (now - lastFpsTime >= 1000) {
+                dom.fpsCounter.textContent = `FPS: ${displayFrames}`;
+                displayFrames = 0;
+                lastFpsTime = now;
+            }
+
+            requestAnimationFrame(displayLoop);
+        }
+
+        // ============================================================
+        // INFERENCE DISPATCH — decoupled from display
+        // ============================================================
+        function scheduleInference() {
+            if (!isCameraActive) return;
+
+            if (!inferenceInFlight && dom.video.videoWidth > 0) {
+                inferenceInFlight = true;
                 transmitFrame();
             }
-            
-            // FPS Calculation
-            framesCounted++;
-            if (now - lastFpsTimestamp >= 1000) {
-                domElements.fpsCounter.textContent = `FPS: ${framesCounted}`;
-                framesCounted = 0;
-                lastFpsTimestamp = now;
-            }
-            
-            requestAnimationFrame(processFrameLoop);
+
+            // Schedule next check — adaptive: try every 100ms but never overlap
+            setTimeout(scheduleInference, 100);
         }
 
         function transmitFrame() {
-            domElements.canvas.width = 640;
-            domElements.canvas.height = 480;
-            ctx.drawImage(domElements.video, 0, 0, 640, 480);
-            
-            const base64Data = domElements.canvas.toDataURL('image/jpeg', 0.7);
-            isProcessing = true;
-            
+            // Capture at a sensible resolution for inference (not display)
+            const w = 640, h = 480;
+            dom.captureCanvas.width = w;
+            dom.captureCanvas.height = h;
+            captureCtx.drawImage(dom.video, 0, 0, w, h);
+
+            const t0 = performance.now();
+            const base64 = dom.captureCanvas.toDataURL('image/jpeg', 0.75);
+
             fetch('/predict', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ frame: base64Data })
+                body: JSON.stringify({ frame: base64 })
             })
-            .then(res => res.json())
-            .then(handleInferenceResponse)
-            .catch(err => console.error("Inference Error:", err))
-            .finally(() => { isProcessing = false; });
+            .then(r => r.json())
+            .then(data => {
+                const latency = Math.round(performance.now() - t0);
+                dom.latencyBadge.textContent = latency + ' ms';
+                handleResponse(data);
+            })
+            .catch(err => console.error("Inference error:", err))
+            .finally(() => { inferenceInFlight = false; });
         }
 
-        function handleInferenceResponse(data) {
+        // ============================================================
+        // RESPONSE HANDLER — draws landmarks on transparent overlay canvas
+        // ============================================================
+        function handleResponse(data) {
             if (data.error) return;
-            
-            // Render annotated frame
-            if (data.frame) {
-                domElements.annotatedFrame.src = 'data:image/jpeg;base64,' + data.frame;
+
+            // Draw landmarks on the overlay canvas (if server sends them)
+            if (data.landmarks) {
+                drawLandmarks(data.landmarks);
             }
-            
-            // Parse predictions
+
             if (!data.predictions || data.predictions.length === 0) return;
-            
-            const topPrediction = data.predictions[0];
-            currentLabel = topPrediction.label;
-            const confidence = topPrediction.confidence;
-            
-            // Update UI
-            domElements.heroLabel.textContent = currentLabel;
-            domElements.heroConf.textContent = `${(confidence * 100).toFixed(1)}% Confidence`;
-            
-            // Update List
-            domElements.predictionList.innerHTML = data.predictions.map(pred => {
-                const pct = (pred.confidence * 100).toFixed(1);
-                return `
-                    <div class="pred-item">
-                        <div class="pred-label">${pred.label}</div>
-                        <div class="pred-bar-container">
-                            <div class="pred-bar-fill" style="width: ${pct}%"></div>
-                        </div>
-                        <div class="pred-val">${pct}%</div>
-                    </div>
-                `;
+
+            const top = data.predictions[0];
+            currentLabel = top.label;
+            const conf = top.confidence;
+
+            dom.heroLabel.textContent = currentLabel;
+            dom.heroConf.textContent = `${(conf * 100).toFixed(1)}% Confidence`;
+
+            dom.predList.innerHTML = data.predictions.map(p => {
+                const pct = (p.confidence * 100).toFixed(1);
+                return `<div class="pred-item">
+                    <div class="pred-label">${p.label}</div>
+                    <div class="pred-bar-wrap"><div class="pred-bar" style="width:${pct}%"></div></div>
+                    <div class="pred-val">${pct}%</div>
+                </div>`;
             }).join('');
-            
-            // Update Telemetry
+
+            // Telemetry
             totalInferences++;
-            cumulativeConfidence += confidence;
-            domElements.statInferences.textContent = totalInferences.toLocaleString();
-            domElements.statConf.textContent = ((cumulativeConfidence / totalInferences) * 100).toFixed(1) + '%';
-            
-            // Auto-append logic
-            if (domElements.cfgAutoAdd.checked && confidence >= 0.90) {
+            cumulativeConfidence += conf;
+            dom.statInferences.textContent = totalInferences.toLocaleString();
+            dom.statConf.textContent = ((cumulativeConfidence / totalInferences) * 100).toFixed(1) + '%';
+
+            // Auto-add
+            if (dom.cfgAutoAdd.checked && conf >= 0.90) {
                 const now = Date.now();
                 if (now - lastAppendTime >= 500) {
                     if (trackedLabel === currentLabel) {
@@ -871,79 +734,118 @@
             }
         }
 
-        // Sequence Actions
+        // ============================================================
+        // DRAW LANDMARKS on transparent overlay (no server-returned JPEG needed)
+        // ============================================================
+        function drawLandmarks(landmarks) {
+            const canvas = dom.landmarkCanvas;
+            const vw = dom.video.videoWidth;
+            const vh = dom.video.videoHeight;
+            if (!vw || !vh) return;
+
+            canvas.width = vw;
+            canvas.height = vh;
+            const ctx = landmarkCtx;
+            ctx.clearRect(0, 0, vw, vh);
+
+            const HAND_CONNS = [
+                [0,1],[1,2],[2,3],[3,4],
+                [0,5],[5,6],[6,7],[7,8],
+                [0,9],[9,10],[10,11],[11,12],
+                [0,13],[13,14],[14,15],[15,16],
+                [0,17],[17,18],[18,19],[19,20],
+                [5,9],[9,13],[13,17],
+            ];
+
+            // Draw hands
+            if (landmarks.hands) {
+                for (const hand of landmarks.hands) {
+                    // Connections
+                    ctx.strokeStyle = 'rgba(34, 197, 94, 0.85)';
+                    ctx.lineWidth = 2.5;
+                    for (const [a, b] of HAND_CONNS) {
+                        if (a < hand.length && b < hand.length) {
+                            ctx.beginPath();
+                            ctx.moveTo(hand[a][0] * vw, hand[a][1] * vh);
+                            ctx.lineTo(hand[b][0] * vw, hand[b][1] * vh);
+                            ctx.stroke();
+                        }
+                    }
+                    // Joints
+                    ctx.fillStyle = 'rgba(74, 222, 128, 0.9)';
+                    for (const pt of hand) {
+                        ctx.beginPath();
+                        ctx.arc(pt[0] * vw, pt[1] * vh, 3.5, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+            }
+
+            // Draw pose
+            if (landmarks.pose) {
+                const POSE_CONNS = [[0,1],[0,2],[2,4],[1,3],[3,5]]; // shoulders, elbows, wrists
+                ctx.strokeStyle = 'rgba(99, 102, 241, 0.8)';
+                ctx.lineWidth = 2.5;
+                for (const [a, b] of POSE_CONNS) {
+                    if (a < landmarks.pose.length && b < landmarks.pose.length) {
+                        ctx.beginPath();
+                        ctx.moveTo(landmarks.pose[a][0] * vw, landmarks.pose[a][1] * vh);
+                        ctx.lineTo(landmarks.pose[b][0] * vw, landmarks.pose[b][1] * vh);
+                        ctx.stroke();
+                    }
+                }
+                ctx.fillStyle = 'rgba(129, 140, 248, 0.9)';
+                for (const pt of landmarks.pose) {
+                    ctx.beginPath();
+                    ctx.arc(pt[0] * vw, pt[1] * vh, 5, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+        }
+
+        // ============================================================
+        // SENTENCE ACTIONS
+        // ============================================================
         function addTopWord() {
             if (!currentLabel) return;
             sequence.push(currentLabel);
-            updateSequenceDisplay();
-            if (domElements.cfgAutoSpeak.checked) synthesizeAudio(currentLabel);
+            updateSequence();
+            if (dom.cfgAutoSpeak.checked) speak(currentLabel);
         }
+        function deleteLast() { sequence.pop(); updateSequence(); }
+        function clearAll() { sequence = []; updateSequence(); }
+        function speakSentence() { if (sequence.length) speak(sequence.join(' ')); }
 
-        function deleteLast() {
-            sequence.pop();
-            updateSequenceDisplay();
-        }
-
-        function clearAll() {
-            sequence = [];
-            updateSequenceDisplay();
-        }
-
-        function speakSentence() {
-            if (sequence.length > 0) {
-                synthesizeAudio(sequence.join(' '));
-            }
-        }
-
-        function updateSequenceDisplay() {
-            if (sequence.length === 0) {
-                domElements.sentenceDisplay.innerHTML = '<div class="empty-text">Sequence empty. Begin inference to populate.</div>';
+        function updateSequence() {
+            if (!sequence.length) {
+                dom.sentenceDisplay.innerHTML = '<div class="empty-text">No signs captured yet. Start signing to build a sentence.</div>';
             } else {
-                domElements.sentenceDisplay.innerHTML = sequence.map(word => 
-                    `<div class="word-chip">${word}</div>`
-                ).join('');
+                dom.sentenceDisplay.innerHTML = sequence.map(w => `<div class="word-chip">${w}</div>`).join('');
             }
         }
 
-        // Audio Synthesis
-        function synthesizeAudio(text) {
-            if (!text || !domElements.cfgSpeech.checked) return;
-            
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.volume = parseInt(domElements.cfgVolume.value) / 100;
-            utterance.rate = 0.9;
-            
-            window.speechSynthesis.cancel();
-            window.speechSynthesis.speak(utterance);
+        function speak(text) {
+            if (!text || !dom.cfgSpeech.checked) return;
+            const u = new SpeechSynthesisUtterance(text);
+            u.volume = parseInt(dom.cfgVolume.value) / 100;
+            u.rate = 0.9;
+            speechSynthesis.cancel();
+            speechSynthesis.speak(u);
         }
 
-        // Settings Listeners
-        domElements.cfgVolume.addEventListener('input', (e) => {
-            domElements.volDisplay.textContent = e.target.value + '%';
-        });
+        // Settings
+        dom.cfgVolume.addEventListener('input', e => { dom.volDisplay.textContent = e.target.value + '%'; });
 
-        // Keyboard Shortcuts
-        document.addEventListener('keydown', (e) => {
+        // Keyboard shortcuts
+        document.addEventListener('keydown', e => {
             if (e.target.tagName === 'INPUT') return;
-            
-            switch(e.code) {
-                case 'Space': 
-                    e.preventDefault(); 
-                    addTopWord(); 
-                    break;
-                case 'Backspace': 
-                    e.preventDefault(); 
-                    deleteLast(); 
-                    break;
-                case 'KeyS': 
-                    speakSentence(); 
-                    break;
-                case 'KeyC': 
-                    clearAll(); 
-                    break;
+            switch (e.code) {
+                case 'Space':     e.preventDefault(); addTopWord(); break;
+                case 'Backspace': e.preventDefault(); deleteLast(); break;
+                case 'KeyS':      speakSentence(); break;
+                case 'KeyC':      clearAll(); break;
             }
         });
     </script>
 </body>
 </html>
-
